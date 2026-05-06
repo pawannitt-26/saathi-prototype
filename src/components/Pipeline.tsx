@@ -1,22 +1,37 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronDown, Filter, MoreVertical, TrendingUp } from 'lucide-react';
 import { View, Lead } from '../types';
+import { fetchLeads, type LeadDto } from '../api/client';
 
 interface PipelineProps {
-  onNavigate: (view: View) => void;
+  onNavigate: (view: View, leadId?: string) => void;
 }
 
-const mockLeads: Lead[] = [
-  { id: '1', name: 'Rahul Sharma', phone: '+91 98765 43210', location: 'Mumbai', profession: 'MFD', score: 95, status: 'HOT', lastInteraction: '2 mins ago' },
-  { id: '2', name: 'Priya Patel', phone: '+91 91234 56789', location: 'Ahmedabad', profession: 'Agent', score: 65, status: 'WARM', lastInteraction: '1 hr ago' },
-  { id: '3', name: 'Amit Kumar', phone: '+91 99887 76655', location: 'Delhi', profession: 'Influencer', score: 30, status: 'COLD', lastInteraction: 'Yesterday' },
-  { id: '4', name: 'Sneha Gupta', phone: '+91 90000 11111', location: 'Bangalore', profession: 'Agent', score: 88, status: 'HOT', lastInteraction: '5 mins ago' },
-];
+function mapDto(l: LeadDto): Lead {
+  return {
+    id: l.id,
+    name: l.name,
+    phone: l.phone,
+    location: l.location,
+    profession: l.profession,
+    score: l.score,
+    status: l.status,
+    lastInteraction: l.last_interaction || '—',
+  };
+}
 
 export default function PipelineView({ onNavigate }: PipelineProps) {
+  const [leadRows, setLeadRows] = useState<Lead[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchLeads()
+      .then((rows) => setLeadRows(rows.map(mapDto)))
+      .catch((e) => setError(String(e)));
+  }, []);
+
   return (
     <div className="space-y-4 flex-1 flex flex-col">
-      {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
           <h2 className="text-xl font-bold text-slate-800 tracking-tight">Lead Pipeline</h2>
@@ -32,14 +47,19 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
               <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
             </div>
           ))}
-          <button className="bg-white border border-slate-200 rounded px-3 py-1 text-[10px] font-bold text-slate-600 flex items-center space-x-1.5 hover:bg-slate-50 transition-colors shadow-sm uppercase tracking-wider">
+          <button type="button" className="bg-white border border-slate-200 rounded px-3 py-1 text-[10px] font-bold text-slate-600 flex items-center space-x-1.5 hover:bg-slate-50 transition-colors shadow-sm uppercase tracking-wider">
             <Filter size={12} />
             <span>Advanced Search</span>
           </button>
         </div>
       </div>
 
-      {/* Stats Overview */}
+      {error && (
+        <div className="text-rose-600 text-xs font-bold bg-rose-50 border border-rose-200 rounded p-2">
+          API: {error} — start backend (docker compose up) or set VITE_API_URL
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-indigo-900 rounded-lg p-4 text-white relative overflow-hidden shadow-md flex flex-col justify-between h-[100px]">
           <div className="relative z-10 flex items-center justify-between">
@@ -47,15 +67,15 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
           </div>
           <div className="relative z-10">
-            <div className="text-2xl font-bold tracking-tighter">12</div>
-            <div className="text-[10px] font-medium text-indigo-200">Active AI Engagements</div>
+            <div className="text-2xl font-bold tracking-tighter">{leadRows.length}</div>
+            <div className="text-[10px] font-medium text-indigo-200">Leads in CRM</div>
           </div>
         </div>
 
         {[
-          { label: 'Total Leads (24h)', value: '1,248', trend: '+14%', positive: true },
-          { label: 'Conversion Rate', value: '8.4%', trend: '+2.1%', positive: true },
-          { label: 'Avg Contact Latency', value: '42s', trend: 'Optimal', positive: null },
+          { label: 'Total Leads', value: String(leadRows.length), trend: 'API', positive: null },
+          { label: 'Hot count', value: String(leadRows.filter((l) => l.status === 'HOT').length), trend: 'Live', positive: true },
+          { label: 'Warm count', value: String(leadRows.filter((l) => l.status === 'WARM').length), trend: 'Live', positive: true },
         ].map((stat, i) => (
           <div key={i} className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col justify-center h-[100px]">
             <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</div>
@@ -67,18 +87,17 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
         ))}
       </div>
 
-      {/* Main Data Table */}
       <div className="bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col flex-1 overflow-hidden">
         <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Prospect List</h4>
-          <span className="text-[9px] font-bold text-slate-400">1,248 Total Records</span>
+          <span className="text-[9px] font-bold text-slate-400">{leadRows.length} Total Records</span>
         </div>
         <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead className="bg-slate-50/50 text-slate-400 text-[9px] uppercase font-bold border-b border-slate-100">
               <tr>
                 <th className="py-2 px-6 w-10">
-                  <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                  <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" readOnly />
                 </th>
                 <th className="py-2 px-6">Prospect / Contact</th>
                 <th className="py-2 px-6">Location</th>
@@ -90,14 +109,14 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-[12px]">
-              {mockLeads.map((lead) => (
+              {leadRows.map((lead) => (
                 <tr 
                   key={lead.id} 
                   className={`hover:bg-indigo-50/30 transition-colors group cursor-pointer ${lead.status === 'HOT' ? 'bg-amber-50/10' : ''}`}
-                  onClick={() => onNavigate('lead-detail')}
+                  onClick={() => onNavigate('lead-detail', lead.id)}
                 >
                   <td className="py-3 px-6" onClick={(e) => e.stopPropagation()}>
-                    <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                    <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" readOnly />
                   </td>
                   <td className="py-3 px-6">
                     <div className="font-bold text-slate-800">{lead.name}</div>
@@ -110,7 +129,7 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
                       <div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
                         <div 
                           className={`h-full rounded-full ${lead.score > 80 ? 'bg-amber-500' : lead.score > 50 ? 'bg-indigo-500' : 'bg-slate-300'}`} 
-                          style={{ width: `${lead.score}%` }}
+                          style={{ width: `${Math.min(100, lead.score)}%` }}
                         ></div>
                       </div>
                       <span className={`font-mono font-bold text-[11px] ${lead.score > 80 ? 'text-amber-600' : lead.score > 50 ? 'text-indigo-600' : 'text-slate-400'}`}>
@@ -129,7 +148,7 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
                   </td>
                   <td className="py-3 px-6 text-right text-slate-400 font-mono text-[10px] font-bold">{lead.lastInteraction}</td>
                   <td className="py-3 px-6 text-center">
-                    <button className="text-slate-300 hover:text-slate-600 transition-colors p-1">
+                    <button type="button" className="text-slate-300 hover:text-slate-600 transition-colors p-1">
                       <MoreVertical size={14} />
                     </button>
                   </td>
@@ -139,18 +158,13 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
           </table>
         </div>
         
-        {/* Pagination Footer */}
         <div className="bg-slate-50/50 border-t border-slate-100 px-6 py-3 flex items-center justify-between">
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Page 1 of 125
+            Live data from Saathi API
           </div>
           <div className="flex items-center space-x-2">
-            <button className="bg-white border border-slate-200 rounded px-3 py-1 text-[10px] font-bold text-slate-300 cursor-not-allowed uppercase tracking-wider" disabled>
-              Prev
-            </button>
-            <button className="bg-white border border-slate-200 rounded px-3 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-colors uppercase tracking-wider">
-              Next
-            </button>
+            <TrendingUp size={14} className="text-indigo-500" />
+            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Pipeline sync</span>
           </div>
         </div>
       </div>

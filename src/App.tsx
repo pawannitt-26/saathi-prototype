@@ -15,8 +15,6 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { View } from './types';
 
-// Import Views
-// We will define these in separate files soon, for now we will place them or scaffold them.
 import DashboardView from './components/Dashboard';
 import PipelineView from './components/Pipeline';
 import ActiveCallView from './components/ActiveCall';
@@ -26,6 +24,7 @@ import AnalyticsView from './components/Analytics';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('pipeline');
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -34,13 +33,13 @@ export default function App() {
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
-  const handleNavigate = (view: View) => {
+  const handleNavigate = (view: View, leadId?: string) => {
+    if (leadId) setSelectedLeadId(leadId);
     setCurrentView(view);
   };
 
   return (
     <div className="flex h-screen bg-brand-background overflow-hidden font-sans">
-      {/* SideNavBar */}
       <nav className="w-60 bg-brand-dark flex flex-col h-full border-r border-slate-800 z-50">
         <div className="p-6 flex items-center gap-3">
           <div className="w-8 h-8 bg-brand-primary-light rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
@@ -78,7 +77,7 @@ export default function App() {
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
               <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH8bsTbRbQfaH9idSbGw-NoWOUAFS9GuqDI8Y6AK_6wh6ZHdGt-gvoNV_gp_rXfD9VRuqQ7pOf_OLfv8H1bXUaLwtDJHlYAdUp0w_fJVsPDma9apIB3xAtbng-78EnKI6StKM1WGx2xDnuXmCWRnZsmVIXp0fZPLPGOFt1Akfa8LZABDPHaTqSgz8e3t6Kdt0zkQ-YGSYZUzmNET3WFGvrQ6xBHE1mVaR9VbkCcsyqt5kDs4wqFcsKZJB-TTw7WpAWWm1jksOsZB_Q" 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH8bsTbRbQfaH9idSbGw-NoWOUAFS9GuqDI8Y6AK_6wh6ZHdGt-gvoNV_gp_rXfD9VRuqQ7pOf_OLfv8H1bXUaLwtDJHlYAdUp0w_fJVsPDma5apIB3xAtbng-78EnKI6StKM1WGx2xDnuXmCWRnZsmVIXp0fZPLPGOFt1Akfa8LZABDPHaTqSgz8e3t6Kdt0zkQ-YGSYZUzmNET3WFGvrQ6xBHE1mVaR9VbkCcsyqt5kDs4wqFcsKZJB-TTw7WpAWWm1jksOsZB_Q" 
                 alt="User avatar"
                 className="w-full h-full object-cover"
               />
@@ -91,9 +90,7 @@ export default function App() {
         </div>
       </nav>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        {/* TopAppBar */}
         <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 w-full z-40">
           <div className="flex items-center gap-4">
             <h1 className="text-lg font-bold text-slate-800">SAATHI Intelligence</h1>
@@ -104,16 +101,19 @@ export default function App() {
 
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-end">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Today's Pipeline</span>
-              <span className="text-sm font-bold text-slate-900 tracking-tight">$1,248,392 <span className="text-slate-400 font-normal">Est.</span></span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Today&apos;s Pipeline</span>
+              <span className="text-sm font-bold text-slate-900 tracking-tight">Rupeezy AP</span>
             </div>
-            <button className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded shadow-sm hover:bg-slate-800 transition-colors uppercase tracking-widest">
+            <button 
+              type="button"
+              onClick={() => handleNavigate('active-call')}
+              className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded shadow-sm hover:bg-slate-800 transition-colors uppercase tracking-widest"
+            >
               Execute Call
             </button>
           </div>
         </header>
 
-        {/* Page Canvas */}
         <main className="flex-1 overflow-y-auto custom-scrollbar flex flex-col p-6 space-y-6">
           <AnimatePresence mode="wait">
             <motion.div
@@ -126,9 +126,9 @@ export default function App() {
             >
               {currentView === 'dashboard' && <DashboardView onNavigate={handleNavigate} />}
               {currentView === 'pipeline' && <PipelineView onNavigate={handleNavigate} />}
-              {currentView === 'active-call' && <ActiveCallView />}
+              {currentView === 'active-call' && <ActiveCallView preferredLeadId={selectedLeadId} />}
               {currentView === 'rm-view' && <RMView />}
-              {currentView === 'lead-detail' && <LeadDetailView />}
+              {currentView === 'lead-detail' && <LeadDetailView leadId={selectedLeadId} />}
               {currentView === 'analytics' && <AnalyticsView />}
             </motion.div>
           </AnimatePresence>

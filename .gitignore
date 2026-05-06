@@ -4,5 +4,36 @@ dist/
 coverage/
 .DS_Store
 *.log
+
+# Env (keep tracked examples)
 .env*
 !.env.example
+!backend/.env.example
+
+# Python
+backend/.venv/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Testing / type / lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+.cache/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
