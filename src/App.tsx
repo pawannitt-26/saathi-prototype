@@ -7,6 +7,8 @@ import {
   LogOut,
   Mic,
   Sparkles,
+  Menu,
+  X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type Session } from '@supabase/supabase-js';
@@ -41,6 +43,22 @@ export default function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [currentView]);
+
+  useEffect(() => {
+    if (mobileNavOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileNavOpen]);
 
   useEffect(() => {
     if (!supabase) {
@@ -86,6 +104,7 @@ export default function App() {
   const handleNavigate = (view: View, leadId?: string) => {
     if (leadId) setSelectedLeadId(leadId);
     setCurrentView(view);
+    setMobileNavOpen(false);
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -144,10 +163,25 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden font-sans">
-      <aside className="w-64 shrink-0 flex flex-col h-full bg-white border-r border-slate-200/90 z-50 shadow-[4px_0_24px_-12px_rgba(15,23,42,0.08)]">
-        <div className="p-5 pb-4 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-blue-900/25 ring-1 ring-white/20">
+      {mobileNavOpen ? (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="fixed inset-0 z-40 bg-slate-900/45 backdrop-blur-[2px] lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      ) : null}
+
+      <aside
+        id="workspace-nav"
+        className={[
+          'fixed lg:static inset-y-0 left-0 z-50 w-[min(20rem,calc(100vw-2.5rem))] max-w-[85vw] shrink-0 flex flex-col h-full bg-white border-r border-slate-200/90 shadow-[4px_0_24px_-12px_rgba(15,23,42,0.08)] transition-transform duration-300 ease-out will-change-transform pt-[env(safe-area-inset-top)]',
+          mobileNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+        ].join(' ')}
+      >
+        <div className="p-4 sm:p-5 pb-4 border-b border-slate-100 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-blue-900/25 ring-1 ring-white/20 shrink-0">
               S
             </div>
             <div className="min-w-0">
@@ -155,6 +189,14 @@ export default function App() {
               <p className="text-[11px] text-slate-500 font-medium mt-1 leading-tight">Partner intelligence</p>
             </div>
           </div>
+          <button
+            type="button"
+            className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 shrink-0"
+            aria-label="Close navigation"
+            onClick={() => setMobileNavOpen(false)}
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-0.5">
@@ -185,7 +227,7 @@ export default function App() {
           })}
         </nav>
 
-        <div className="p-3 border-t border-slate-100 space-y-3">
+        <div className="p-3 border-t border-slate-100 space-y-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
             onClick={() => handleNavigate('active-call')}
@@ -229,23 +271,35 @@ export default function App() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="shrink-0 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-6 py-4 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 max-w-[1600px] mx-auto w-full">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-lg font-bold text-slate-900 tracking-tight capitalize">
+        <header className="shrink-0 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 sm:px-6 sm:py-4 lg:px-8 pt-[max(0.75rem,env(safe-area-inset-top))]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 max-w-[1600px] mx-auto w-full">
+            <div className="flex items-start gap-3 min-w-0">
+              <button
+                type="button"
+                className="lg:hidden mt-0.5 p-2 rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm shrink-0"
+                aria-expanded={mobileNavOpen}
+                aria-controls="workspace-nav"
+                aria-label="Open navigation menu"
+                onClick={() => setMobileNavOpen(true)}
+              >
+                <Menu size={20} strokeWidth={2} />
+              </button>
+              <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
+                <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight capitalize">
                   {headerMeta.title}
                 </h1>
-                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-emerald-200/80">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-emerald-200/80 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Live
                 </span>
               </div>
-              <p className="text-sm text-slate-500 font-medium max-w-xl leading-snug">
+              <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-xl leading-snug">
                 {headerMeta.subtitle}
               </p>
+              </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap sm:flex-nowrap">
               <div className="hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2">
                 <Sparkles size={14} className="text-blue-600" />
                 <div className="text-right">
@@ -256,7 +310,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => handleNavigate('active-call')}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold tracking-wide shadow-md shadow-slate-900/15 hover:bg-slate-800 transition-colors"
+                className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold tracking-wide shadow-md shadow-slate-900/15 hover:bg-slate-800 transition-colors text-center"
               >
                 Execute call
               </button>
@@ -264,8 +318,8 @@ export default function App() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="max-w-[1600px] mx-auto w-full p-6 lg:p-8 min-h-full">
+        <main className="flex-1 overflow-y-auto custom-scrollbar min-h-0">
+          <div className="max-w-[1600px] mx-auto w-full p-4 sm:p-6 lg:p-8 min-h-full pb-[max(1rem,env(safe-area-inset-bottom))]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentView}

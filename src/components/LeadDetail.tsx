@@ -117,22 +117,24 @@ export default function LeadDetailView({ leadId, onNavigate }: LeadDetailProps) 
 
   return (
     <div className="flex-1 flex flex-col gap-4 relative animate-in fade-in slide-in-from-bottom-2 duration-500">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-          <span className="hover:text-indigo-600 transition-colors">Client Directory</span>
-          <ChevronRight size={14} className="text-slate-300" />
-          <span className="text-slate-900">{lead.name}</span>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between gap-y-3">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-bold text-slate-400 uppercase tracking-widest min-w-0">
+          <span className="hover:text-indigo-600 transition-colors shrink-0">Client Directory</span>
+          <ChevronRight size={14} className="text-slate-300 shrink-0" aria-hidden />
+          <span className="text-slate-900 min-w-0 break-words">{lead.name}</span>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[10px] font-bold text-slate-300 tracking-widest">ID: {lead.id.slice(0, 8)}</span>
-          <button type="button" className="flex items-center gap-2 px-3 py-1.5 rounded bg-white border border-slate-200 text-slate-700 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
+          <span className="font-mono text-[10px] font-bold text-slate-300 tracking-widest truncate text-left sm:text-right order-2 sm:order-1">
+            ID: {lead.id.slice(0, 8)}
+          </span>
+          <button type="button" className="flex items-center justify-center gap-2 px-3 py-1.5 rounded bg-white border border-slate-200 text-slate-700 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm order-1 sm:order-2 w-full sm:w-auto">
             <Edit3 size={12} /> 
             <span>Annotate</span>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 h-full min-h-[700px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 min-h-0 lg:min-h-[620px]">
         <div className="col-span-1 lg:col-span-4 flex flex-col gap-4">
           <div className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col gap-5">
             <div className="flex justify-between items-start">
@@ -216,7 +218,7 @@ export default function LeadDetailView({ leadId, onNavigate }: LeadDetailProps) 
           </div>
         </div>
 
-        <div className="col-span-1 lg:col-span-8 bg-white border border-slate-200 rounded-xl flex flex-col shadow-sm overflow-hidden h-full">
+        <div className="col-span-1 lg:col-span-8 bg-white border border-slate-200 rounded-xl flex flex-col shadow-sm overflow-hidden min-h-[320px] lg:min-h-0 lg:h-full">
           <div className="px-5 py-3.5 border-b border-slate-200/90 flex justify-between items-center bg-white">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 border border-blue-100">
@@ -255,7 +257,7 @@ export default function LeadDetailView({ leadId, onNavigate }: LeadDetailProps) 
                     className={`flex gap-3 sm:gap-4 w-full ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`flex gap-3 sm:gap-4 max-w-[min(100%,40rem)] ${msg.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                      className={`flex gap-2 sm:gap-4 w-full max-w-full sm:max-w-[min(100%,40rem)] ${msg.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                     >
                       <div
                         className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${
@@ -296,11 +298,11 @@ export default function LeadDetailView({ leadId, onNavigate }: LeadDetailProps) 
             )}
           </div>
 
-          <div className="p-4 border-t border-slate-100 bg-white flex justify-end items-center">
+          <div className="p-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-2">
             <button
               type="button"
               onClick={() => onNavigate('active-call', lead.id)}
-              className="px-5 py-2 rounded bg-slate-900 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg shadow-slate-900/10 active:scale-95"
+              className="px-5 py-2.5 rounded bg-slate-900 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/10 active:scale-95 w-full sm:w-auto"
             >
               <Phone size={14} fill="currentColor" /> Initiate Reach
             </button>

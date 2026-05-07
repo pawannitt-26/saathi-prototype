@@ -151,12 +151,12 @@ export default function LandingPage({
   onSubmit,
 }: LandingPageProps) {
   return (
-    <div className="min-h-screen text-slate-900 relative overflow-x-hidden">
+    <div className="min-h-screen text-slate-900 relative overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       <LandingWaveBackground />
 
       <div className="relative z-10">
         <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-          <div className="max-w-6xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between">
+          <div className="max-w-6xl mx-auto px-4 sm:px-5 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-sm font-bold shadow-md shadow-blue-900/20">
                 S
@@ -169,7 +169,7 @@ export default function LandingPage({
           </div>
         </header>
 
-        <div className="max-w-6xl mx-auto px-5 lg:px-8 py-12 lg:py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-5 lg:px-8 py-8 sm:py-12 lg:py-16">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-start">
             <div className="lg:col-span-7 space-y-10">
               <motion.div
@@ -184,7 +184,7 @@ export default function LandingPage({
                     Voice-led RM platform
                   </span>
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight text-slate-900 leading-[1.08]">
+                <h1 className="text-[clamp(1.75rem,6vw,2.75rem)] sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight text-slate-900 leading-[1.08]">
                   Relationships{' '}
                   <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 via-blue-700 to-indigo-700">
                     simplified

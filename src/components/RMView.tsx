@@ -29,12 +29,12 @@ export default function RMView({ onNavigate }: RMViewProps) {
 
   return (
     <div className="space-y-6 flex-1">
-      <div className="flex justify-between items-end">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
+        <div className="min-w-0">
           <h2 className="text-xl font-bold text-slate-800 mb-0.5 tracking-tight">Institutional Queue</h2>
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">High-Intent Assignments</p>
         </div>
-        <div className="flex items-center gap-3 text-slate-500 font-mono text-[10px] bg-white px-3 py-1.5 rounded border border-slate-200 uppercase font-bold tracking-wider">
+        <div className="flex items-center gap-3 text-slate-500 font-mono text-[10px] bg-white px-3 py-1.5 rounded border border-slate-200 uppercase font-bold tracking-wider w-full sm:w-auto justify-center sm:justify-start shrink-0">
           <Calendar size={14} />
           <span>RM Dashboard</span>
         </div>
@@ -42,9 +42,9 @@ export default function RMView({ onNavigate }: RMViewProps) {
 
       {error && <p className="text-rose-600 text-xs font-bold">{error}</p>}
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 h-[500px]">
-        <section className="xl:col-span-8 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-4 py-2.5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:min-h-[28rem]">
+        <section className="xl:col-span-8 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-0">
+          <div className="px-4 py-2.5 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
             <div className="flex items-center gap-3">
               <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Triage Queue</h3>
               <span className="bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm">
@@ -53,8 +53,8 @@ export default function RMView({ onNavigate }: RMViewProps) {
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
+          <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar min-h-[240px] max-h-[55vh] xl:max-h-none xl:min-h-0">
+            <table className="w-full text-left border-collapse min-w-[36rem]">
               <thead className="bg-slate-50/30 sticky top-0 z-10 border-b border-slate-100">
                 <tr className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                   <th className="px-6 py-2.5">Lead Identity</th>
@@ -87,7 +87,7 @@ export default function RMView({ onNavigate }: RMViewProps) {
                         <span className="font-mono text-[11px] font-bold text-slate-700">{lead.value}</span>
                       </td>
                       <td className="px-6 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="flex items-center justify-end gap-2 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity">
                           <button
                             type="button"
                             title="View AI transcript & lead detail"
@@ -115,7 +115,7 @@ export default function RMView({ onNavigate }: RMViewProps) {
           </div>
         </section>
 
-        <section className="xl:col-span-4 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+        <section className="xl:col-span-4 bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col overflow-hidden min-h-[200px] xl:min-h-0">
           <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
             <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Calendar Events</h3>
           </div>

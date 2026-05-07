@@ -586,16 +586,16 @@ export default function ActiveCallView({
   };
 
   return (
-    <div className="flex flex-col gap-4 flex-1 min-h-[600px] animate-in fade-in slide-in-from-right-2 duration-500">
-      <div className="flex justify-between items-center bg-white p-4 rounded-lg border border-slate-200 shadow-sm w-full flex-wrap gap-3">
-        <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex flex-col gap-4 flex-1 min-h-0 sm:min-h-[520px] animate-in fade-in slide-in-from-right-2 duration-500">
+      <div className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center bg-white p-4 rounded-lg border border-slate-200 shadow-sm w-full">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap min-w-0">
           <div className="w-10 h-10 bg-slate-50 rounded border border-slate-200 flex items-center justify-center text-indigo-600">
             <User size={20} />
           </div>
-          <div>
+          <div className="w-full sm:w-auto min-w-0">
             <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Lead</label>
             <select
-              className="text-sm font-bold text-slate-900 border border-slate-200 rounded px-2 py-1 bg-white"
+              className="text-sm font-bold text-slate-900 border border-slate-200 rounded px-2 py-1 bg-white w-full max-w-full sm:max-w-xs sm:w-auto"
               value={leadId}
               onChange={(e) => setLeadId(e.target.value)}
               disabled={status === 'live' || status === 'ending'}
@@ -611,14 +611,15 @@ export default function ActiveCallView({
             type="button"
             onClick={() => void connect()}
             disabled={!leadId || status === 'live' || status === 'ending'}
-            className="text-[10px] font-bold uppercase tracking-widest bg-indigo-600 text-white px-3 py-2 rounded disabled:opacity-40"
+            className="w-full sm:w-auto text-[10px] font-bold uppercase tracking-widest bg-indigo-600 text-white px-3 py-2.5 rounded disabled:opacity-40"
           >
             Start session
           </button>
         </div>
 
-        <div className="flex items-center gap-6 flex-wrap">
-          <div className="flex flex-col items-end">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-6 w-full lg:w-auto border-t border-slate-100 pt-4 lg:border-t-0 lg:pt-0">
+          <div className="flex flex-row justify-between gap-4 w-full sm:w-auto sm:justify-end">
+          <div className="flex flex-col items-start sm:items-end">
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Live Score</span>
             <div className="flex items-center gap-1 text-indigo-600">
               <TrendingUp size={14} className="text-amber-500" />
@@ -627,7 +628,7 @@ export default function ActiveCallView({
             </div>
           </div>
           
-          <div className="h-8 w-px bg-slate-100"></div>
+          <div className="hidden sm:block h-8 w-px bg-slate-100 shrink-0" aria-hidden />
           
           <div className="flex flex-col items-end">
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Duration</span>
@@ -636,13 +637,14 @@ export default function ActiveCallView({
               <span className="font-mono text-base font-bold text-slate-900 tracking-tighter">{fmt(duration)}</span>
             </div>
           </div>
+          </div>
 
           <button
             type="button"
             onClick={endCall}
             disabled={status !== 'live'}
             title={status === 'idle' || status === 'ended' ? 'Start a session first' : status === 'ending' ? 'Finalizing call…' : 'End call and save score'}
-            className="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded text-[10px] font-bold flex items-center gap-2 transition-all shadow-lg shadow-rose-500/10 uppercase tracking-widest disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none disabled:hover:bg-rose-600"
+            className="w-full sm:w-auto justify-center bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded text-[10px] font-bold flex items-center gap-2 transition-all shadow-lg shadow-rose-500/10 uppercase tracking-widest disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none disabled:hover:bg-rose-600"
           >
             {status === 'ending' ? (
               <>
@@ -661,8 +663,8 @@ export default function ActiveCallView({
 
       {error && <p className="text-xs text-rose-600 font-bold px-1">{error}</p>}
 
-      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm w-full">
-        <div className="flex items-center justify-between relative px-2">
+      <div className="bg-white p-3 sm:p-4 rounded-lg border border-slate-200 shadow-sm w-full overflow-x-auto">
+        <div className="flex items-center justify-between relative px-2 min-w-[28rem] sm:min-w-0">
           <div className="absolute top-3.5 left-0 w-full h-px bg-slate-100 z-0"></div>
           
           {PHASES.map((step, idx) => {
@@ -702,10 +704,10 @@ export default function ActiveCallView({
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-slate-50/20 max-h-[420px]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar bg-slate-50/20 max-h-[min(52vh,28rem)] sm:max-h-[420px]">
             {lines.map((line) =>
               line.speaker === 'ai' ? (
-                <div key={line.id} className="flex gap-3 max-w-[90%]">
+                <div key={line.id} className="flex gap-3 max-w-[min(92%,100%)]">
                   <div className="w-7 h-7 rounded bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm">
                     <Bot size={14} />
                   </div>
@@ -784,7 +786,7 @@ export default function ActiveCallView({
                   </div>
                 </div>
               ) : (
-                <div key={line.id} className="flex gap-3 max-w-[90%] self-end flex-row-reverse">
+                <div key={line.id} className="flex gap-3 max-w-[min(92%,100%)] self-end flex-row-reverse">
                   <div className="w-7 h-7 rounded bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 border border-slate-200">
                     <User size={14} />
                   </div>

@@ -37,17 +37,17 @@ export default function AnalyticsView() {
 
   return (
     <div className="space-y-6 flex-1 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="flex justify-between items-end mb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-0.5 tracking-tight">Institutional Analytics</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end mb-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-0.5 tracking-tight">Institutional Analytics</h1>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Conversion funnel from live CRM.</p>
         </div>
-        <div className="flex gap-2">
-          <button type="button" className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded text-[10px] font-bold uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all flex items-center gap-2 active:scale-95">
+        <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:items-stretch">
+          <button type="button" className="w-full sm:w-auto justify-center px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded text-[10px] font-bold uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all flex items-center gap-2 active:scale-95">
             <Calendar size={14} />
             MTD Performance
           </button>
-          <button type="button" className="px-4 py-2 bg-indigo-600 text-white rounded text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 transition-all flex items-center gap-2 active:scale-95">
+          <button type="button" className="w-full sm:w-auto justify-center px-4 py-2 bg-indigo-600 text-white rounded text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 transition-all flex items-center gap-2 active:scale-95">
             <Download size={14} />
             Export CSV
           </button>
@@ -55,13 +55,13 @@ export default function AnalyticsView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <div className="lg:col-span-8 bg-white rounded-lg border border-slate-200 shadow-sm p-6 flex flex-col">
-          <div className="flex justify-between items-center mb-10 px-2">
+        <div className="lg:col-span-8 bg-white rounded-lg border border-slate-200 shadow-sm p-4 sm:p-6 flex flex-col min-w-0">
+          <div className="flex items-center justify-between gap-2 mb-6 sm:mb-10 px-0 sm:px-2 flex-wrap">
             <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Efficiency Funnel</h2>
             <span className="text-[9px] font-bold bg-slate-50 text-slate-500 px-2.5 py-1 rounded border border-slate-200 uppercase">Live</span>
           </div>
           
-          <div className="flex-1 flex flex-col justify-between py-2 space-y-2">
+          <div className="flex-1 flex flex-col justify-between py-2 space-y-2 overflow-x-auto">
             {funnelSteps.map((step, idx) => {
               const isFirst = idx === 0;
               const barWidth = funnelDisplayWidth(step.width, isFirst);
@@ -144,9 +144,9 @@ export default function AnalyticsView() {
           </div>
           <div className="grid grid-cols-1 gap-5">
             {objections.map((obj, i) => (
-              <div key={i} className="group flex items-center gap-4">
-                <span className="text-[10px] font-bold text-slate-600 uppercase w-24 shrink-0">{obj.label}</span>
-                <div className="flex-1 bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100">
+              <div key={i} className="group flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                <span className="text-[10px] font-bold text-slate-600 uppercase sm:w-28 shrink-0">{obj.label}</span>
+                <div className="flex-1 bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100 min-w-0 w-full">
                   <motion.div 
                     initial={{ width: 0 }}
                     whileInView={{ width: obj.width }}
@@ -154,7 +154,7 @@ export default function AnalyticsView() {
                     className="bg-indigo-600 h-full rounded-full"
                   />
                 </div>
-                <span className="font-mono text-[10px] font-bold text-slate-400 w-10 text-right">{obj.value}</span>
+                <span className="font-mono text-[10px] font-bold text-slate-400 sm:w-10 text-left sm:text-right shrink-0">{obj.value}</span>
               </div>
             ))}
           </div>
@@ -166,7 +166,7 @@ export default function AnalyticsView() {
             <Globe size={14} className="text-slate-300" />
           </div>
           
-          <div className="flex-1 flex items-center justify-center gap-8">
+          <div className="flex-1 flex flex-col sm:flex-row items-stretch justify-center gap-6 sm:gap-8 min-w-0">
             <div className="grid grid-cols-2 gap-4 flex-1">
               {languageSplit.map((item, i) => (
                 <div key={i} className="flex flex-col p-3 bg-slate-50 rounded-sm border border-slate-100">

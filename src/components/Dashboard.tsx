@@ -79,12 +79,12 @@ export default function DashboardView({ onNavigate }: DashboardProps) {
 
   return (
     <div className="space-y-6 flex-1">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800 tracking-tight">Institutional Overview</h2>
           <p className="text-xs text-slate-400 font-medium">Performance summary across SAATHI voice sessions.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           {lastUpdated && (
             <span className="text-[10px] font-medium text-slate-400">
               {secondsAgo < 10 ? 'just now' : `${secondsAgo}s ago`}
@@ -114,7 +114,7 @@ export default function DashboardView({ onNavigate }: DashboardProps) {
           { label: 'Hot Leads', value: String(metrics?.hot_leads_today ?? 0), subValue: 'current snapshot', icon: Flame, color: 'text-amber-600 bg-amber-50 border-amber-100' },
           { label: 'Sentiment HOT', value: sentiment.HOT ?? '0%', subValue: 'of base', icon: Timer, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
         ].map((metric, i) => (
-          <div key={i} className="bg-white border border-slate-200 shadow-sm rounded-lg p-4 flex flex-col justify-between h-[110px]">
+          <div key={i} className="bg-white border border-slate-200 shadow-sm rounded-lg p-4 flex flex-col justify-between min-h-[100px] sm:h-[110px]">
             <div className="flex items-start justify-between">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 {'active' in metric && metric.active && (
@@ -135,7 +135,7 @@ export default function DashboardView({ onNavigate }: DashboardProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[420px]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:min-h-[380px]">
         <div className="lg:col-span-8 bg-white border border-slate-200 shadow-sm rounded-lg flex flex-col overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
             <h3 className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Asset Conversion Funnel</h3>
@@ -147,7 +147,7 @@ export default function DashboardView({ onNavigate }: DashboardProps) {
               Export Analytics
             </button>
           </div>
-          <div className="flex-1 flex flex-col justify-center space-y-4 px-8 py-6">
+          <div className="flex-1 flex flex-col justify-center space-y-4 px-4 sm:px-8 py-6 min-h-0">
             {funnel.map((step, idx) => (
               <div key={idx} className="relative group">
                 <div className="flex justify-between text-[10px] font-bold text-slate-400 mb-1.5 uppercase" style={{ width: step.width }}>
@@ -193,7 +193,7 @@ export default function DashboardView({ onNavigate }: DashboardProps) {
             <h3 className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">System Events</h3>
           </div>
         </div>
-        <div className="divide-y divide-slate-50 h-[280px] overflow-y-auto custom-scrollbar">
+        <div className="divide-y divide-slate-50 max-h-[min(50vh,280px)] sm:h-[280px] sm:max-h-none overflow-y-auto custom-scrollbar">
           {activities.length === 0 ? (
             <div className="p-6 text-xs text-slate-400 font-medium">No events yet — complete a voice session.</div>
           ) : (

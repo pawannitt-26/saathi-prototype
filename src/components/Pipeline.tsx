@@ -65,7 +65,7 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
 
   return (
     <div className="space-y-4 flex-1 flex flex-col">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-800 tracking-tight">Lead Pipeline</h2>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Prospect Flow</p>
@@ -194,7 +194,7 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
               : `${leadRows.length} Total Records`}
           </span>
         </div>
-        <div className="overflow-x-auto h-full">
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead className="bg-slate-50/50 text-slate-400 text-[9px] uppercase font-bold border-b border-slate-100">
               <tr>
@@ -264,8 +264,63 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
             </tbody>
           </table>
         </div>
+
+        <ul className="md:hidden divide-y divide-slate-100" aria-label="Prospect list">
+          {filteredRows.length === 0 && (
+            <li className="py-10 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider px-4">
+              No leads match the current filters.
+            </li>
+          )}
+          {filteredRows.map((lead) => (
+            <li key={lead.id}>
+              <button
+                type="button"
+                onClick={() => onNavigate('lead-detail', lead.id)}
+                className={`w-full text-left p-4 active:bg-slate-50 transition-colors ${lead.status === 'HOT' ? 'bg-amber-50/40' : ''}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-slate-800 text-sm truncate">{lead.name}</p>
+                    <p className="text-[10px] font-mono text-slate-400 mt-0.5 uppercase tracking-tighter">{lead.phone}</p>
+                    <p className="text-xs text-slate-500 font-medium mt-2 line-clamp-2">
+                      {lead.location ?? '—'}
+                      {lead.profession ? ` · ${lead.profession}` : ''}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest border shadow-sm ${
+                      lead.status === 'HOT'
+                        ? 'bg-amber-50 text-amber-600 border-amber-100'
+                        : lead.status === 'WARM'
+                          ? 'bg-indigo-50 text-indigo-600 border-indigo-100'
+                          : 'bg-slate-50 text-slate-400 border-slate-200'
+                    }`}
+                  >
+                    {lead.status}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-3 gap-2">
+                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                    <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden max-w-[140px]">
+                      <div
+                        className={`h-full rounded-full ${lead.score > 80 ? 'bg-amber-500' : lead.score > 50 ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                        style={{ width: `${Math.min(100, lead.score)}%` }}
+                      />
+                    </div>
+                    <span
+                      className={`font-mono font-bold text-[11px] shrink-0 ${lead.score > 80 ? 'text-amber-600' : lead.score > 50 ? 'text-indigo-600' : 'text-slate-400'}`}
+                    >
+                      {lead.score}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono font-bold truncate">{lead.lastInteraction}</span>
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
         
-        <div className="bg-slate-50/50 border-t border-slate-100 px-6 py-3 flex items-center justify-between">
+        <div className="bg-slate-50/50 border-t border-slate-100 px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             Live data from Saathi API
           </div>
