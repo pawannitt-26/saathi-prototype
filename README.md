@@ -10,6 +10,7 @@ Postgres is **not** bundled: use **Supabase** (or any Postgres you manage separa
 2. `docker compose up --build`
 3. API: `http://localhost:8000/health`
 4. Frontend: copy [.env.example](.env.example) to `.env` or `.env.local`, set `VITE_API_URL=http://localhost:8000`, then `npm install && npm run dev`
+5. Create an RM user in Supabase Auth (**Authentication → Users**) and sign in from the app.
 
 Compose overrides **`REDIS_URL`** inside the API container to `redis://redis:6379/0`; your `backend/.env` can still use `localhost` for hybrid runs and that value is ignored in Docker for Redis only.
 
@@ -19,6 +20,9 @@ Compose overrides **`REDIS_URL`** inside the API container to `redis://redis:637
 2. `cd backend && python3 -m venv .venv && source .venv/bin/activate`
 3. `pip install -r requirements.txt`
 4. `backend/.env` with **`DATABASE_URL`** = Supabase (same as Docker path).
+   - Set `SUPABASE_URL=https://<project-ref>.supabase.co`
+   - Keep `SUPABASE_JWT_AUDIENCE=authenticated` unless your JWT audience is custom
+   - Set `WEBHOOK_SECRET` for `/api/webhooks/*` requests
 5. From `backend/`: `alembic upgrade head && python -m app.seed`
 6. `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
 
@@ -35,6 +39,14 @@ cd backend && PYTHONPATH=. .venv/bin/pytest tests/ -q
 Open **Voice Monitor**, choose a lead, **Start session**, then type user lines. The server streams AI tokens and returns optional TTS (`audio/mpeg`) when ElevenLabs/Sarvam are configured. End with **End & score** to persist transcript, RM brief, and triggers (WhatsApp stub for **WARM**).
 
 Vendor API keys stay on the server only. The SPA uses `VITE_API_URL` — no LLM/STT keys in the browser.
+
+## Authentication (Supabase Auth)
+
+- Frontend sign-in uses Supabase email/password.
+- REST routes under `/api/leads`, `/api/dashboard`, `/api/analytics` require `Authorization: Bearer <access_token>`.
+- WebSocket `/ws/call` requires `access_token` in the connection query string.
+- `/health` stays public.
+- `/api/webhooks/whatsapp/link-opened` is protected by `X-Webhook-Secret` (matches backend `WEBHOOK_SECRET`).
 
 ## Supabase (hosted Postgres + browser client)
 

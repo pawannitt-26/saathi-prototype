@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.conversation.context import LeadConversationContext, phase_instruction
 from app.conversation.fsm import apply_heuristic_context_update, infer_transition
 from app.db import SessionLocal
+from app.auth import AuthUser
 from app.models import Call, CallPhase, CallStatus, Lead, TranscriptTurn
 from app.prompts.appendix_a import build_system_prompt
 from app.rm_brief import build_rm_brief_payload, log_audit, persist_rm_brief
@@ -30,7 +31,7 @@ from app.services.whatsapp_stub import send_warm_followup
 log = logging.getLogger(__name__)
 
 
-async def handle_call_socket(websocket: WebSocket) -> None:
+async def handle_call_socket(websocket: WebSocket, _user: AuthUser) -> None:
     await websocket.accept()
     db = SessionLocal()
     call: Call | None = None

@@ -1,18 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
   Mic2, 
   BarChart3, 
-  HelpCircle, 
   LogOut, 
-  Search, 
-  Bell, 
-  Settings, 
-  Plus,
   Mic
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { type Session } from '@supabase/supabase-js';
 import { View } from './types';
 
 import DashboardView from './components/Dashboard';
@@ -21,10 +17,54 @@ import ActiveCallView from './components/ActiveCall';
 import RMView from './components/RMView';
 import LeadDetailView from './components/LeadDetail';
 import AnalyticsView from './components/Analytics';
+import LandingPage from './components/LandingPage';
+import { requireSupabase, supabase } from './utils/supabase';
+import { setAccessTokenProvider } from './api/client';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('pipeline');
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSigningIn, setIsSigningIn] = useState(false);
+
+  useEffect(() => {
+    if (!supabase) {
+      setAuthError(
+        'Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.'
+      );
+      setAuthLoading(false);
+      setAccessTokenProvider(null);
+      return;
+    }
+    setAccessTokenProvider(async () => {
+      const { data } = await supabase.auth.getSession();
+      return data.session?.access_token ?? null;
+    });
+    let mounted = true;
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!mounted) return;
+      if (error) {
+        setAuthError(error.message);
+      } else {
+        setSession(data.session);
+      }
+      setAuthLoading(false);
+    });
+    const { data: authSub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      if (nextSession) setAuthError(null);
+    });
+    return () => {
+      mounted = false;
+      authSub.subscription.unsubscribe();
+      setAccessTokenProvider(null);
+    };
+  }, []);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -37,6 +77,57 @@ export default function App() {
     if (leadId) setSelectedLeadId(leadId);
     setCurrentView(view);
   };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setIsSigningIn(true);
+    try {
+      const client = requireSupabase();
+      const { error } = await client.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (error) setAuthError(error.message);
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Sign in failed');
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    setAuthError(null);
+    try {
+      const client = requireSupabase();
+      const { error } = await client.auth.signOut();
+      if (error) setAuthError(error.message);
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Sign out failed');
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-brand-background text-slate-200 text-sm font-medium">
+        Loading secure workspace...
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <LandingPage
+        email={email}
+        password={password}
+        authError={authError}
+        isSigningIn={isSigningIn}
+        onEmailChange={setEmail}
+        onPasswordChange={setPassword}
+        onSubmit={handleSignIn}
+      />
+    );
+  }
 
   return (
     <div className="flex h-screen bg-brand-background overflow-hidden font-sans">
@@ -76,16 +167,33 @@ export default function App() {
           
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
-              <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH8bsTbRbQfaH9idSbGw-NoWOUAFS9GuqDI8Y6AK_6wh6ZHdGt-gvoNV_gp_rXfD9VRuqQ7pOf_OLfv8H1bXUaLwtDJHlYAdUp0w_fJVsPDma5apIB3xAtbng-78EnKI6StKM1WGx2xDnuXmCWRnZsmVIXp0fZPLPGOFt1Akfa8LZABDPHaTqSgz8e3t6Kdt0zkQ-YGSYZUzmNET3WFGvrQ6xBHE1mVaR9VbkCcsyqt5kDs4wqFcsKZJB-TTw7WpAWWm1jksOsZB_Q" 
-                alt="User avatar"
-                className="w-full h-full object-cover"
-              />
+              {!avatarFailed ? (
+                <img
+                  src="https://ui-avatars.com/api/?name=Marcus+Thorne&background=334155&color=ffffff"
+                  alt="User avatar"
+                  className="w-full h-full object-cover"
+                  onError={() => setAvatarFailed(true)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-white bg-slate-600">
+                  MT
+                </div>
+              )}
             </div>
             <div className="flex flex-col">
-              <span className="text-xs text-white font-medium">Marcus Thorne</span>
+              <span className="text-xs text-white font-medium">
+                {session.user.email ?? 'RM User'}
+              </span>
               <span className="text-[10px] text-slate-500">Relationship Manager</span>
             </div>
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              className="ml-auto text-slate-400 hover:text-white transition-colors"
+              title="Sign out"
+            >
+              <LogOut size={14} />
+            </button>
           </div>
         </div>
       </nav>

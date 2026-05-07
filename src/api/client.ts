@@ -1,6 +1,18 @@
 const raw = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 export const API_BASE = raw.replace(/\/$/, '');
 
+type AccessTokenProvider = () => Promise<string | null>;
+let accessTokenProvider: AccessTokenProvider | null = null;
+
+export function setAccessTokenProvider(provider: AccessTokenProvider | null): void {
+  accessTokenProvider = provider;
+}
+
+export async function getAccessToken(): Promise<string | null> {
+  if (!accessTokenProvider) return null;
+  return accessTokenProvider();
+}
+
 export function wsBaseUrl(): string {
   if (API_BASE.startsWith('https://')) {
     return API_BASE.replace('https://', 'wss://');
@@ -14,6 +26,15 @@ async function parseJson<T>(res: Response): Promise<T> {
     throw new Error(t || res.statusText);
   }
   return res.json() as Promise<T>;
+}
+
+async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  const token = await getAccessToken();
+  const headers = new Headers(init?.headers ?? {});
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  return fetch(`${API_BASE}${path}`, { ...init, headers });
 }
 
 export type LeadDto = {
@@ -73,31 +94,31 @@ export type AnalyticsDto = {
 };
 
 export async function fetchLeads(): Promise<LeadDto[]> {
-  const res = await fetch(`${API_BASE}/api/leads`);
+  const res = await apiFetch('/api/leads');
   return parseJson(res);
 }
 
 export async function fetchLeadDetail(leadId: string): Promise<LeadDetailDto> {
-  const res = await fetch(`${API_BASE}/api/leads/${leadId}`);
+  const res = await apiFetch(`/api/leads/${leadId}`);
   return parseJson(res);
 }
 
 export async function fetchDashboardMetrics(): Promise<DashboardMetricsDto> {
-  const res = await fetch(`${API_BASE}/api/dashboard/metrics`);
+  const res = await apiFetch('/api/dashboard/metrics');
   return parseJson(res);
 }
 
 export async function fetchActivities(): Promise<ActivityDto[]> {
-  const res = await fetch(`${API_BASE}/api/dashboard/activities`);
+  const res = await apiFetch('/api/dashboard/activities');
   return parseJson(res);
 }
 
 export async function fetchRmHot(): Promise<HotLeadRmDto[]> {
-  const res = await fetch(`${API_BASE}/api/dashboard/rm/hot`);
+  const res = await apiFetch('/api/dashboard/rm/hot');
   return parseJson(res);
 }
 
 export async function fetchAnalytics(): Promise<AnalyticsDto> {
-  const res = await fetch(`${API_BASE}/api/analytics/summary`);
+  const res = await apiFetch('/api/analytics/summary');
   return parseJson(res);
 }

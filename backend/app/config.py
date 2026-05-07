@@ -9,6 +9,10 @@ class Settings(BaseSettings):
 
     database_url: str = ""
     redis_url: str = "redis://localhost:6379/0"
+    supabase_url: str = ""
+    supabase_publishable_key: str = ""
+    supabase_jwt_audience: str = "authenticated"
+    webhook_secret: str = ""
 
     anthropic_api_key: str = ""
     deepgram_api_key: str = ""

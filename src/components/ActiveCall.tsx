@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Check } from 'lucide-react';
-import { fetchLeads, wsBaseUrl, type LeadDto } from '../api/client';
+import { fetchLeads, getAccessToken, wsBaseUrl, type LeadDto } from '../api/client';
 
 const PHASES = ['OPENER', 'PITCH', 'OBJECTION', 'QUALIFICATION', 'CLOSE'] as const;
 
@@ -63,11 +63,18 @@ export default function ActiveCallView({
     setLines((prev) => [...prev, { id: uid(), speaker, text }]);
   };
 
-  const connect = () => {
+  const connect = async () => {
     if (!leadId) return;
     setError(null);
     wsRef.current?.close();
-    const ws = new WebSocket(`${wsBaseUrl()}/ws/call`);
+    const token = await getAccessToken();
+    if (!token) {
+      setError('Please log in again to start a session.');
+      return;
+    }
+    const ws = new WebSocket(
+      `${wsBaseUrl()}/ws/call?access_token=${encodeURIComponent(token)}`
+    );
     wsRef.current = ws;
     setLines([]);
     setPhase('OPENER');
@@ -173,7 +180,7 @@ export default function ActiveCallView({
           </div>
           <button
             type="button"
-            onClick={connect}
+            onClick={() => void connect()}
             disabled={!leadId || status === 'live'}
             className="text-[10px] font-bold uppercase tracking-widest bg-indigo-600 text-white px-3 py-2 rounded disabled:opacity-40"
           >

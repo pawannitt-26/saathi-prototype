@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket
+from fastapi import Depends, FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import analytics, dashboard, leads, webhooks
+from app.auth import get_websocket_user, require_http_user
 from app.config import get_settings
 from app.logging_config import configure_logging
 from app.ws.call_session import handle_call_socket
@@ -27,9 +28,10 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.include_router(leads.router, prefix="/api")
-    app.include_router(dashboard.router, prefix="/api")
-    app.include_router(analytics.router, prefix="/api")
+    protected = [Depends(require_http_user)]
+    app.include_router(leads.router, prefix="/api", dependencies=protected)
+    app.include_router(dashboard.router, prefix="/api", dependencies=protected)
+    app.include_router(analytics.router, prefix="/api", dependencies=protected)
     app.include_router(webhooks.router, prefix="/api")
 
     @app.get("/health")
@@ -38,7 +40,12 @@ def create_app() -> FastAPI:
 
     @app.websocket("/ws/call")
     async def ws_call(ws: WebSocket) -> None:
-        await handle_call_socket(ws)
+        try:
+            user = get_websocket_user(ws, settings)
+        except HTTPException:
+            await ws.close(code=4401, reason="Unauthorized")
+            return
+        await handle_call_socket(ws, user)
 
     return app
 
