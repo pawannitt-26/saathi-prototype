@@ -93,6 +93,24 @@ export type AnalyticsDto = {
   language_split: Array<{ label: string; value: string; color: string }>;
 };
 
+export type LeadCreateBody = {
+  name: string;
+  phone: string;
+  location?: string;
+  profession?: string;
+  score?: number;
+  status?: 'HOT' | 'WARM' | 'COLD';
+};
+
+export async function createLead(body: LeadCreateBody): Promise<LeadDto> {
+  const res = await apiFetch('/api/leads', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return parseJson(res);
+}
+
 export async function fetchLeads(): Promise<LeadDto[]> {
   const res = await apiFetch('/api/leads');
   return parseJson(res);

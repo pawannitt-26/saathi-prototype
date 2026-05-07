@@ -184,7 +184,7 @@ export default function LeadDetailView({ leadId }: { leadId: string | null }) {
                   </div>
                 ) : (
                   <div key={i} className={`flex gap-4 max-w-[95%] ${msg.type === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
-                    <div className={`w-8 h-8 rounded border flex items-center justify-center flex-shrink-0 mt-1 shadow-sm ${
+                    <div className={`w-8 h-8 rounded border flex items-center justify-center shrink-0 mt-1 shadow-sm ${
                       msg.type === 'ai' ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white text-indigo-600 border-slate-100 font-bold text-xs'
                     }`}>
                       {msg.type === 'ai' ? <Bot size={16} /> : initials[0]}
