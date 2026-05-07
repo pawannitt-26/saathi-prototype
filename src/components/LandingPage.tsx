@@ -1,6 +1,14 @@
 import React from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
-import { ArrowRight, CheckCircle2, Mic2, ShieldCheck, Sparkles, Waves } from 'lucide-react';
+import { motion } from 'motion/react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  Mic2,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  Headphones,
+} from 'lucide-react';
 
 type LandingPageProps = {
   email: string;
@@ -12,29 +20,126 @@ type LandingPageProps = {
   onSubmit: (e: React.FormEvent) => Promise<void>;
 };
 
-const metrics = [
-  { label: 'Avg. Response Latency', value: '< 300ms' },
-  { label: 'Active Voice Workflows', value: 'Realtime' },
-  { label: 'Conversation Intelligence', value: 'AI Scored' },
+const trustStats = [
+  { label: 'Voice-ready workflows', value: 'Real-time', hint: 'Structured qualification' },
+  { label: 'AI scoring', value: 'Per session', hint: 'HOT / WARM / COLD' },
+  { label: 'RM handoff', value: 'Automated', hint: 'Briefs & openers' },
 ];
 
 const features = [
   {
-    title: 'Realtime Voice Orchestration',
-    text: 'Run structured calls with continuous AI guidance, objection handling, and phase-aware progression.',
+    title: 'Voice orchestration',
+    text: 'Phase-aware calls with objection handling and natural Hindi / English / Hinglish.',
     icon: Mic2,
   },
   {
-    title: 'Secure Internal Access',
-    text: 'Role-gated RM workspace with controlled access to lead intelligence and call outcomes.',
+    title: 'Secure workspace',
+    text: 'Team access via Supabase Auth with protected APIs and WebSocket sessions.',
     icon: ShieldCheck,
   },
   {
-    title: 'Actionable Insights Pipeline',
-    text: 'Convert every conversation into concise summaries, scores, handoff triggers, and RM-ready next steps.',
-    icon: Sparkles,
+    title: 'Actionable pipeline',
+    text: 'Every conversation becomes scores, summaries, and next steps for RMs.',
+    icon: TrendingUp,
   },
 ];
+
+/** Layered soft blobs + light wash — similar vibe to Rupeezy hero (organic curves, blue/white). */
+function LandingWaveBackground() {
+  return (
+    <div
+      className="fixed inset-0 pointer-events-none overflow-hidden z-0"
+      aria-hidden
+    >
+      {/* Base: cool white → faint sky (clean fintech canvas) */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(165deg, #f5f9ff 0%, #fafcff 38%, #f4f7fb 72%, #eef4fc 100%)',
+        }}
+      />
+
+      {/* Top-left: soft blue pocket */}
+      <div
+        className="landing-blob-animate absolute w-[min(95vw,720px)] h-[min(70vh,560px)] rounded-[48%_52%_45%_55%] opacity-[0.42]"
+        style={{
+          top: '-18%',
+          left: '-22%',
+          background:
+            'radial-gradient(ellipse 65% 55% at 40% 45%, rgb(147 197 253 / 0.55), rgb(186 230 253 / 0.22) 55%, transparent 72%)',
+          filter: 'blur(48px)',
+        }}
+      />
+
+      {/* Bottom-left: wave rising (light azure sweep) */}
+      <div
+        className="landing-blob-animate-delayed absolute w-[min(110vw,900px)] h-[min(85vh,640px)] rounded-[55%_45%_52%_48%] opacity-[0.38]"
+        style={{
+          bottom: '-28%',
+          left: '-35%',
+          background:
+            'radial-gradient(ellipse 58% 50% at 55% 40%, rgb(125 211 252 / 0.45), rgb(224 242 254 / 0.28) 50%, transparent 70%)',
+          filter: 'blur(56px)',
+        }}
+      />
+
+      {/* Center / right: bright white “break” behind content (the sweeping highlight in the reference) */}
+      <div
+        className="landing-blob-animate-slow absolute w-[min(120vw,980px)] h-[min(95vh,820px)] rounded-[42%_58%_48%_52%] opacity-[0.72]"
+        style={{
+          top: '-8%',
+          right: '-25%',
+          background:
+            'radial-gradient(ellipse 52% 48% at 50% 42%, rgb(255 255 255 / 0.94), rgb(255 255 255 / 0.35) 58%, transparent 76%)',
+          filter: 'blur(40px)',
+        }}
+      />
+
+      {/* Mid: subtle periwinkle depth */}
+      <div
+        className="landing-blob-animate absolute w-[min(80vw,560px)] h-[min(55vh,420px)] rounded-[50%] opacity-[0.22]"
+        style={{
+          top: '28%',
+          left: '18%',
+          background:
+            'radial-gradient(circle at 50% 50%, rgb(99 102 241 / 0.16), transparent 68%)',
+          filter: 'blur(64px)',
+        }}
+      />
+
+      {/* Bottom edge: gentle wave line (SVG) */}
+      <svg
+        className="absolute bottom-0 left-0 w-full h-[min(22vh,200px)] text-white/50"
+        viewBox="0 0 1440 200"
+        preserveAspectRatio="none"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M0 120C180 40 360 160 540 100C720 40 900 140 1080 90C1260 40 1350 100 1440 70V200H0V120Z"
+          fill="url(#landing-wave-grad)"
+          className="opacity-90"
+        />
+        <defs>
+          <linearGradient id="landing-wave-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgb(255,255,255)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="rgb(241 245 249)" stopOpacity="0.85" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      {/* Fine vignette — keeps focus on center */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 85% 75% at 50% 45%, transparent 0%, rgb(248 250 252 / 0.4) 100%)',
+        }}
+      />
+    </div>
+  );
+}
 
 export default function LandingPage({
   email,
@@ -45,243 +150,164 @@ export default function LandingPage({
   onPasswordChange,
   onSubmit,
 }: LandingPageProps) {
-  const [activeMode, setActiveMode] = React.useState<'agent' | 'insights' | 'handoff'>('agent');
-  const { scrollYProgress } = useScroll();
-  const haloY = useTransform(scrollYProgress, [0, 1], [0, -140]);
-  const gridY = useTransform(scrollYProgress, [0, 1], [0, -80]);
-
-  const modeCopy = {
-    agent: {
-      title: 'Live Agent Assist',
-      metric: 'Phase: OPENER -> PITCH',
-      detail: 'Realtime response coaching with call-state progression.',
-    },
-    insights: {
-      title: 'Conversation Intelligence',
-      metric: 'Signal confidence: 92%',
-      detail: 'Instant scoring and intent extraction from every turn.',
-    },
-    handoff: {
-      title: 'RM Handoff Ready',
-      metric: 'Status: HOT lead queued',
-      detail: 'Auto-generated summary and action plan in seconds.',
-    },
-  } as const;
-
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-hidden">
-      <motion.div style={{ y: haloY }} className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-48 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-indigo-500/30 blur-3xl" />
-        <div className="absolute top-1/2 -left-32 h-80 w-80 rounded-full bg-cyan-500/20 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl" />
-      </motion.div>
+    <div className="min-h-screen text-slate-900 relative overflow-x-hidden">
+      <LandingWaveBackground />
 
-      <motion.div
-        style={{ y: gridY }}
-        className="absolute inset-0 pointer-events-none opacity-30 [background-image:linear-gradient(to_right,#ffffff0f_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0f_1px,transparent_1px)] [background-size:38px_38px]"
-      />
-
-      <div className="relative max-w-7xl mx-auto px-6 py-8 lg:py-12">
-        <motion.header
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center justify-between"
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center font-bold text-indigo-300">
-              S
-            </div>
-            <div>
-              <p className="text-sm font-semibold tracking-wide">SAATHI Intelligence</p>
-              <p className="text-xs text-slate-300">Voice-led RM operations platform</p>
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-2 text-xs text-slate-300 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
-            <Waves size={14} className="text-emerald-300" />
-            Realtime system online
-          </div>
-        </motion.header>
-
-        <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch">
-          <div className="lg:col-span-7 space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.05 }}
-              className="space-y-5"
-            >
-              <span className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-indigo-200 bg-indigo-400/10 border border-indigo-300/20 rounded-full px-3 py-1.5">
-                <Sparkles size={12} />
-                Next-gen RM productivity
-              </span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-                AI voice workflows,
-                <span className="block bg-gradient-to-r from-indigo-300 via-cyan-300 to-violet-300 text-transparent bg-clip-text">
-                  built for high-performance relationship teams.
-                </span>
-              </h1>
-              <p className="text-slate-300 max-w-2xl text-base md:text-lg leading-relaxed">
-                SAATHI unifies live voice execution, AI scoring, and RM actioning in one secure workspace.
-              </p>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="grid sm:grid-cols-3 gap-3">
-              {metrics.map((m) => (
-                <motion.div
-                  key={m.label}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur"
-                >
-                  <p className="text-xl font-semibold tracking-tight text-white">{m.value}</p>
-                  <p className="text-xs text-slate-300 mt-1">{m.label}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="rounded-3xl border border-white/10 bg-slate-900/40 p-5"
-            >
-              <div className="flex flex-wrap gap-2">
-                {(['agent', 'insights', 'handoff'] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setActiveMode(mode)}
-                    className={`px-3 py-1.5 text-xs rounded-full border transition-all ${
-                      activeMode === mode
-                        ? 'bg-indigo-500/20 border-indigo-300/50 text-indigo-100'
-                        : 'bg-white/0 border-white/15 text-slate-300 hover:border-white/35'
-                    }`}
-                  >
-                    {mode === 'agent' ? 'Live Agent' : mode === 'insights' ? 'Insights' : 'Handoff'}
-                  </button>
-                ))}
+      <div className="relative z-10">
+        <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
+          <div className="max-w-6xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-sm font-bold shadow-md shadow-blue-900/20">
+                S
               </div>
+              <div>
+                <p className="text-sm font-bold text-slate-900 tracking-tight leading-tight">Saathi</p>
+                <p className="text-[11px] font-medium text-slate-500 leading-tight">Partner program intelligence</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-6xl mx-auto px-5 lg:px-8 py-12 lg:py-16">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            <div className="lg:col-span-7 space-y-10">
               <motion.div
-                key={activeMode}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25 }}
-                className="mt-4 grid md:grid-cols-5 gap-4"
+                transition={{ duration: 0.45 }}
+                className="space-y-5"
               >
-                <div className="md:col-span-3 rounded-2xl border border-white/10 bg-slate-950/60 p-4">
-                  <p className="text-sm font-semibold">{modeCopy[activeMode].title}</p>
-                  <p className="text-xs text-indigo-200 mt-1">{modeCopy[activeMode].metric}</p>
-                  <p className="text-xs text-slate-300 mt-3">{modeCopy[activeMode].detail}</p>
-                  <div className="mt-4 h-16 flex items-end gap-1">
-                    {[12, 24, 18, 36, 22, 30, 16, 26, 14, 34].map((h, i) => (
-                      <motion.div
-                        key={`${activeMode}-${i}`}
-                        className="w-1.5 rounded-full bg-indigo-400/90"
-                        animate={{ height: [h, h * 0.6, h * 1.1, h] }}
-                        transition={{ repeat: Infinity, duration: 1 + i * 0.07 }}
-                      />
-                    ))}
-                  </div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 shadow-sm">
+                  <Headphones size={14} className="text-blue-600" />
+                  <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600">
+                    Voice-led RM platform
+                  </span>
                 </div>
-                <div className="md:col-span-2 rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-300">System Status</p>
-                  <div className="mt-3 space-y-2">
-                    {['Voice stream active', 'AI scoring online', 'RM brief automation'].map((item) => (
-                      <div key={item} className="flex items-center gap-2 text-xs text-slate-200">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold tracking-tight text-slate-900 leading-[1.08]">
+                  Relationships{' '}
+                  <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 via-blue-700 to-indigo-700">
+                    simplified
+                  </span>
+                </h1>
+                <p className="text-lg text-slate-600 font-medium max-w-xl leading-relaxed">
+                  Qualify partner leads with AI voice sessions, live scoring, and handoff-ready briefs — built for
+                  high-trust distribution teams.
+                </p>
               </motion.div>
-            </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.06 }}
+                className="grid sm:grid-cols-3 gap-3"
+              >
+                {trustStats.map((s) => (
+                  <div
+                    key={s.label}
+                    className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-[0_1px_3px_rgb(15,23,42,0.06)]"
+                  >
+                    <p className="text-xl font-bold text-slate-900 tracking-tight">{s.value}</p>
+                    <p className="text-[11px] font-bold text-slate-800 mt-1 uppercase tracking-wide">{s.label}</p>
+                    <p className="text-xs text-slate-500 mt-1 font-medium">{s.hint}</p>
+                  </div>
+                ))}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.1 }}
+                className="grid sm:grid-cols-3 gap-4"
+              >
+                {features.map((f) => (
+                  <div
+                    key={f.title}
+                    className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 hover:shadow-md hover:border-slate-300/80 transition-all duration-300"
+                  >
+                    <div className="h-9 w-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
+                      <f.icon size={18} className="text-blue-600" strokeWidth={2} />
+                    </div>
+                    <p className="mt-3 text-sm font-bold text-slate-900">{f.title}</p>
+                    <p className="mt-1.5 text-xs text-slate-600 leading-relaxed">{f.text}</p>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
 
             <motion.div
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.22 }}
-              className="grid md:grid-cols-3 gap-4"
+              transition={{ duration: 0.45, delay: 0.05 }}
+              className="lg:col-span-5 lg:sticky lg:top-24"
             >
-              {features.map((f) => (
-                <motion.div
-                  key={f.title}
-                  whileHover={{ y: -5 }}
-                  transition={{ type: 'spring', stiffness: 250, damping: 18 }}
-                  className="rounded-2xl border border-white/10 bg-slate-900/40 p-4"
-                >
-                  <f.icon size={18} className="text-indigo-300" />
-                  <p className="mt-3 text-sm font-semibold">{f.title}</p>
-                  <p className="mt-1 text-xs text-slate-300 leading-relaxed line-clamp-2">{f.text}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="lg:col-span-5"
-          >
-            <div className="rounded-3xl border border-white/15 bg-white text-slate-900 shadow-2xl shadow-indigo-900/40 p-6 md:p-7">
-              <p className="text-xs font-semibold text-indigo-600 uppercase tracking-[0.2em]">Internal Access</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight">Sign in to continue</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Access the secure RM workspace to monitor voice sessions, lead states, and conversion signals.
-              </p>
-
-              <form onSubmit={(e) => void onSubmit(e)} className="mt-6 space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">Work email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => onEmailChange(e.target.value)}
-                    required
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
-                    placeholder="rm@company.com"
-                  />
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.15)]">
+                <div className="flex items-center gap-2 text-blue-600 mb-1">
+                  <Sparkles size={16} strokeWidth={2} />
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em]">Secure sign-in</span>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">Password</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => onPasswordChange(e.target.value)}
-                    required
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
-                    placeholder="Enter your password"
-                  />
-                </div>
-                {authError && (
-                  <p className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-2">
-                    {authError}
-                  </p>
-                )}
-                <button
-                  type="submit"
-                  disabled={isSigningIn}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 text-white py-2.5 text-sm font-semibold hover:bg-slate-800 transition-all hover:translate-y-[-1px] disabled:opacity-50"
-                >
-                  {isSigningIn ? 'Signing in...' : 'Enter Workspace'}
-                  {!isSigningIn && <ArrowRight size={16} />}
-                </button>
-              </form>
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">Access your workspace</h2>
+                <p className="mt-2 text-sm text-slate-600 font-medium leading-relaxed">
+                  Sign in with your team credentials to manage leads, voice sessions, and RM queues.
+                </p>
 
-              <div className="mt-5 pt-4 border-t border-slate-200 space-y-2">
-                <div className="flex items-center gap-2 text-xs text-slate-600">
-                  <CheckCircle2 size={14} className="text-emerald-600" />
-                  Supabase-authenticated team access
-                </div>
-                <div className="flex items-center gap-2 text-xs text-slate-600">
-                  <CheckCircle2 size={14} className="text-emerald-600" />
-                  Protected APIs and secure websocket sessions
+                <form onSubmit={(e) => void onSubmit(e)} className="mt-8 space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700" htmlFor="saathi-email">
+                      Work email
+                    </label>
+                    <input
+                      id="saathi-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => onEmailChange(e.target.value)}
+                      required
+                      autoComplete="email"
+                      className="w-full border border-slate-200 rounded-xl px-3.5 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500 transition-shadow"
+                      placeholder="you@company.com"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700" htmlFor="saathi-password">
+                      Password
+                    </label>
+                    <input
+                      id="saathi-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => onPasswordChange(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                      className="w-full border border-slate-200 rounded-xl px-3.5 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500 transition-shadow"
+                      placeholder="Enter password"
+                    />
+                  </div>
+                  {authError && (
+                    <p className="text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2.5">
+                      {authError}
+                    </p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isSigningIn}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 text-white py-3.5 text-sm font-bold hover:bg-slate-800 transition-colors disabled:opacity-50 shadow-lg shadow-slate-900/20"
+                  >
+                    {isSigningIn ? 'Signing in…' : 'Continue'}
+                    {!isSigningIn && <ArrowRight size={18} strokeWidth={2.25} />}
+                  </button>
+                </form>
+
+                <div className="mt-6 pt-6 border-t border-slate-100 space-y-2.5">
+                  {['Supabase-authenticated access', 'Encrypted API & WebSocket sessions'].map((t) => (
+                    <div key={t} className="flex items-center gap-2.5 text-xs font-semibold text-slate-600">
+                      <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                      {t}
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </div>
     </div>

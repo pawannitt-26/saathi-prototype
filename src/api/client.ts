@@ -53,6 +53,8 @@ export type TranscriptRowDto = {
   time: string;
   text: string;
   type?: string | null;
+  audio_b64?: string | null;
+  audio_mime?: string | null;
 };
 
 export type LeadDetailDto = {

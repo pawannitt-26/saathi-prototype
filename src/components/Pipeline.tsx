@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { ChevronDown, Filter, MoreVertical, TrendingUp } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown, Filter, MoreVertical, Search, TrendingUp, X } from 'lucide-react';
 import { View, Lead } from '../types';
 import { fetchLeads, type LeadDto } from '../api/client';
 
@@ -23,12 +23,45 @@ function mapDto(l: LeadDto): Lead {
 export default function PipelineView({ onNavigate }: PipelineProps) {
   const [leadRows, setLeadRows] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [scoreFilter, setScoreFilter] = useState<string>('ALL');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchLeads()
       .then((rows) => setLeadRows(rows.map(mapDto)))
       .catch((e) => setError(String(e)));
   }, []);
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  const filteredRows = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+    return leadRows.filter((l) => {
+      if (statusFilter !== 'ALL' && l.status !== statusFilter) return false;
+      if (scoreFilter === 'GT80' && l.score <= 80) return false;
+      if (scoreFilter === '50-80' && (l.score < 50 || l.score > 80)) return false;
+      if (scoreFilter === 'LT50' && l.score >= 50) return false;
+      if (q) {
+        const haystack = `${l.name} ${l.phone} ${l.location ?? ''} ${l.profession ?? ''}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [leadRows, statusFilter, scoreFilter, searchText]);
+
+  const filtersActive = statusFilter !== 'ALL' || scoreFilter !== 'ALL' || searchText.trim() !== '';
+
+  const clearFilters = () => {
+    setStatusFilter('ALL');
+    setScoreFilter('ALL');
+    setSearchText('');
+    setSearchOpen(false);
+  };
 
   return (
     <div className="space-y-4 flex-1 flex flex-col">
@@ -37,22 +70,87 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
           <h2 className="text-xl font-bold text-slate-800 tracking-tight">Lead Pipeline</h2>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Prospect Flow</p>
         </div>
-        
-        <div className="flex flex-wrap gap-2">
-          {['Status: All', 'Score: > 80'].map((filter) => (
-            <div key={filter} className="relative group">
-              <select className="appearance-none bg-white border border-slate-200 rounded py-1 pl-2 pr-6 text-[10px] font-bold text-slate-600 outline-none cursor-pointer hover:bg-slate-50 transition-colors uppercase tracking-wider">
-                <option>{filter}</option>
-              </select>
-              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
-            </div>
-          ))}
-          <button type="button" className="bg-white border border-slate-200 rounded px-3 py-1 text-[10px] font-bold text-slate-600 flex items-center space-x-1.5 hover:bg-slate-50 transition-colors shadow-sm uppercase tracking-wider">
+
+        <div className="flex flex-wrap gap-2 items-center">
+          {/* Status filter */}
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="appearance-none bg-white border border-slate-200 rounded py-1 pl-2 pr-6 text-[10px] font-bold text-slate-600 outline-none cursor-pointer hover:bg-slate-50 transition-colors uppercase tracking-wider"
+            >
+              <option value="ALL">Status: All</option>
+              <option value="HOT">Status: Hot</option>
+              <option value="WARM">Status: Warm</option>
+              <option value="COLD">Status: Cold</option>
+            </select>
+            <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
+          </div>
+
+          {/* Score filter */}
+          <div className="relative">
+            <select
+              value={scoreFilter}
+              onChange={(e) => setScoreFilter(e.target.value)}
+              className="appearance-none bg-white border border-slate-200 rounded py-1 pl-2 pr-6 text-[10px] font-bold text-slate-600 outline-none cursor-pointer hover:bg-slate-50 transition-colors uppercase tracking-wider"
+            >
+              <option value="ALL">Score: All</option>
+              <option value="GT80">Score: &gt; 80</option>
+              <option value="50-80">Score: 50 – 80</option>
+              <option value="LT50">Score: &lt; 50</option>
+            </select>
+            <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
+          </div>
+
+          {/* Advanced Search toggle */}
+          <button
+            type="button"
+            onClick={() => setSearchOpen((o) => !o)}
+            className={`bg-white border rounded px-3 py-1 text-[10px] font-bold flex items-center space-x-1.5 hover:bg-slate-50 transition-colors shadow-sm uppercase tracking-wider ${
+              searchOpen || searchText ? 'border-indigo-300 text-indigo-600' : 'border-slate-200 text-slate-600'
+            }`}
+          >
             <Filter size={12} />
             <span>Advanced Search</span>
           </button>
+
+          {/* Clear all filters */}
+          {filtersActive && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="flex items-center gap-1 text-[10px] font-bold text-rose-500 hover:text-rose-700 transition-colors"
+            >
+              <X size={12} />
+              Clear
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Search bar */}
+      {searchOpen && (
+        <div className="relative animate-in fade-in slide-in-from-top-1 duration-150">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Search by name, phone, location or profession…"
+            className="w-full bg-white border border-slate-200 rounded-lg pl-8 pr-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200 transition-colors"
+          />
+          {searchText && (
+            <button
+              type="button"
+              onClick={() => setSearchText('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+      )}
 
       {error && (
         <div className="text-rose-600 text-xs font-bold bg-rose-50 border border-rose-200 rounded p-2">
@@ -90,15 +188,17 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
       <div className="bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col flex-1 overflow-hidden">
         <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Prospect List</h4>
-          <span className="text-[9px] font-bold text-slate-400">{leadRows.length} Total Records</span>
+          <span className="text-[9px] font-bold text-slate-400">
+            {filteredRows.length !== leadRows.length
+              ? `${filteredRows.length} of ${leadRows.length} Records`
+              : `${leadRows.length} Total Records`}
+          </span>
         </div>
         <div className="overflow-x-auto h-full">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead className="bg-slate-50/50 text-slate-400 text-[9px] uppercase font-bold border-b border-slate-100">
               <tr>
-                <th className="py-2 px-6 w-10">
-                  <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" readOnly />
-                </th>
+                <th className="py-2 px-6 w-10" aria-hidden="true" />
                 <th className="py-2 px-6">Prospect / Contact</th>
                 <th className="py-2 px-6">Location</th>
                 <th className="py-2 px-6">Profession</th>
@@ -109,7 +209,14 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-[12px]">
-              {leadRows.map((lead) => (
+              {filteredRows.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="py-10 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    No leads match the current filters.
+                  </td>
+                </tr>
+              )}
+              {filteredRows.map((lead) => (
                 <tr 
                   key={lead.id} 
                   className={`hover:bg-indigo-50/30 transition-colors group cursor-pointer ${lead.status === 'HOT' ? 'bg-amber-50/10' : ''}`}
@@ -161,10 +268,6 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
         <div className="bg-slate-50/50 border-t border-slate-100 px-6 py-3 flex items-center justify-between">
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             Live data from Saathi API
-          </div>
-          <div className="flex items-center space-x-2">
-            <TrendingUp size={14} className="text-indigo-500" />
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Pipeline sync</span>
           </div>
         </div>
       </div>

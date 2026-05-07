@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   ChevronRight, 
   Edit3, 
@@ -10,11 +10,68 @@ import {
   FileText,
   Calendar,
   Flag,
-  Bot
+  Bot,
+  Volume2,
+  ChevronDown,
 } from 'lucide-react';
-import { fetchLeadDetail, type LeadDetailDto } from '../api/client';
+import { fetchLeadDetail, type LeadDetailDto, type TranscriptRowDto } from '../api/client';
+import { View } from '../types';
 
-export default function LeadDetailView({ leadId }: { leadId: string | null }) {
+/** Convert a stored base64 audio string to an object URL for reliable playback. */
+function b64ToObjectUrl(b64: string, mime: string): string {
+  const binary = atob(b64);
+  const arr = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+  return URL.createObjectURL(new Blob([arr], { type: mime }));
+}
+
+function StoredAudioPlayer({ msg }: { msg: TranscriptRowDto }) {
+  const objUrlRef = useRef<string | null>(null);
+  const [open, setOpen] = useState(false);
+
+  if (!msg.audio_b64 || !msg.audio_mime) return null;
+
+  const getSrc = () => {
+    if (!objUrlRef.current) {
+      objUrlRef.current = b64ToObjectUrl(msg.audio_b64!, msg.audio_mime!);
+    }
+    return objUrlRef.current;
+  };
+
+  return (
+    <div className="mt-3 pt-3 border-t border-slate-200/80">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 text-xs font-semibold text-blue-700 hover:text-blue-900 transition-colors"
+      >
+        <Volume2 size={14} className="text-blue-600 shrink-0" aria-hidden />
+        <span>{open ? 'Hide voice reply' : 'Play voice reply'}</span>
+        <ChevronDown
+          size={14}
+          className={`shrink-0 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          aria-hidden
+        />
+      </button>
+      {open && (
+        <audio
+          src={getSrc()}
+          controls
+          autoPlay
+          className="mt-3 w-full max-w-md h-9 rounded-lg accent-blue-600"
+          playsInline
+        />
+      )}
+    </div>
+  );
+}
+
+interface LeadDetailProps {
+  leadId: string | null;
+  onNavigate: (view: View, leadId?: string) => void;
+}
+
+export default function LeadDetailView({ leadId, onNavigate }: LeadDetailProps) {
   const [data, setData] = useState<LeadDetailDto | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -159,46 +216,78 @@ export default function LeadDetailView({ leadId }: { leadId: string | null }) {
           </div>
         </div>
 
-        <div className="col-span-1 lg:col-span-8 bg-white border border-slate-200 rounded-lg flex flex-col shadow-sm overflow-hidden h-full">
-          <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div className="col-span-1 lg:col-span-8 bg-white border border-slate-200 rounded-xl flex flex-col shadow-sm overflow-hidden h-full">
+          <div className="px-5 py-3.5 border-b border-slate-200/90 flex justify-between items-center bg-white">
             <div className="flex items-center gap-3">
-              <MessageSquare size={16} className="text-indigo-600" />
-              <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Interaction Log</h2>
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 border border-blue-100">
+                <MessageSquare size={18} className="text-blue-600" aria-hidden />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-slate-900 tracking-tight">Interaction log</h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Transcript from the latest session</p>
+              </div>
             </div>
-            <div className="flex items-center gap-4 text-[9px] font-bold text-slate-400 uppercase">
-              <span className="flex items-center gap-1.5"><Clock size={14} /> Latest</span>
-              <span className="flex items-center gap-1.5"><Calendar size={14} /> CRM</span>
+            <div className="hidden sm:flex items-center gap-3 text-xs font-medium text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <Clock size={14} className="text-slate-400" aria-hidden /> Chronological
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Calendar size={14} className="text-slate-400" aria-hidden /> CRM
+              </span>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar bg-white/50">
+          <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6 sm:py-8 space-y-6 custom-scrollbar bg-slate-50/60">
             {transcript.length === 0 ? (
-              <p className="text-xs text-slate-400">No transcript yet.</p>
+              <p className="text-sm text-slate-500 font-medium text-center py-12">No transcript yet.</p>
             ) : (
               transcript.map((msg, i) =>
                 msg.type === 'status' ? (
-                  <div key={i} className="flex justify-center">
-                    <div className="bg-amber-100/50 text-amber-700 font-bold text-[8px] px-3 py-1 rounded shadow-sm border border-amber-200 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Flag size={10} fill="currentColor" /> {msg.speaker}
+                  <div key={i} className="flex justify-center py-1">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 text-amber-900 text-xs font-semibold px-4 py-1.5 border border-amber-200/80 shadow-sm">
+                      <Flag size={12} className="text-amber-600 shrink-0" fill="currentColor" aria-hidden />
+                      <span className="tracking-tight">{msg.speaker}</span>
                     </div>
                   </div>
                 ) : (
-                  <div key={i} className={`flex gap-4 max-w-[95%] ${msg.type === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
-                    <div className={`w-8 h-8 rounded border flex items-center justify-center shrink-0 mt-1 shadow-sm ${
-                      msg.type === 'ai' ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white text-indigo-600 border-slate-100 font-bold text-xs'
-                    }`}>
-                      {msg.type === 'ai' ? <Bot size={16} /> : initials[0]}
-                    </div>
-                    <div className={`flex flex-col gap-1.5 ${msg.type === 'user' ? 'items-end' : ''}`}>
-                      <span className={`text-[8px] font-bold uppercase tracking-widest ${msg.type === 'user' ? 'text-slate-300' : 'text-slate-400'}`}>
-                        {msg.speaker} • {msg.time}
-                      </span>
-                      <div className={`p-4 rounded shadow-sm text-[12px] leading-snug ${
-                        msg.type === 'ai' 
-                        ? 'bg-slate-50 border border-slate-200 rounded-tl-sm text-slate-700' 
-                        : 'bg-indigo-600 text-white border border-indigo-700 rounded-tr-sm shadow-indigo-600/10'
-                      }`}>
-                        {msg.text}
+                  <div
+                    key={i}
+                    className={`flex gap-3 sm:gap-4 w-full ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`flex gap-3 sm:gap-4 max-w-[min(100%,40rem)] ${msg.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                    >
+                      <div
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${
+                          msg.type === 'ai'
+                            ? 'bg-slate-900 border-slate-800 text-white'
+                            : 'bg-white text-blue-700 border-slate-200 font-bold text-sm'
+                        }`}
+                      >
+                        {msg.type === 'ai' ? <Bot size={18} aria-hidden /> : <span aria-hidden>{initials[0]}</span>}
+                      </div>
+                      <div className={`flex min-w-0 flex-col gap-2 ${msg.type === 'user' ? 'items-end' : 'items-start'}`}>
+                        <div
+                          className={`flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-medium ${
+                            msg.type === 'user' ? 'justify-end text-right' : ''
+                          }`}
+                        >
+                          <span className={msg.type === 'user' ? 'text-slate-700' : 'text-slate-600'}>{msg.speaker}</span>
+                          <span className="text-slate-400 font-normal tabular-nums" aria-hidden>
+                            ·
+                          </span>
+                          <time className="text-slate-400 font-normal tabular-nums">{msg.time}</time>
+                        </div>
+                        <div
+                          className={`rounded-2xl px-4 py-3.5 sm:px-5 sm:py-4 text-sm leading-relaxed shadow-sm border ${
+                            msg.type === 'ai'
+                              ? 'bg-white text-slate-800 border-slate-200/90 rounded-tl-md shadow-slate-200/40'
+                              : 'bg-blue-700 text-white border-blue-800/80 rounded-tr-md shadow-blue-900/15'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap wrap-break-word font-normal tracking-tight">{msg.text}</p>
+                          {msg.type === 'ai' && <StoredAudioPlayer msg={msg} />}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -208,7 +297,11 @@ export default function LeadDetailView({ leadId }: { leadId: string | null }) {
           </div>
 
           <div className="p-4 border-t border-slate-100 bg-white flex justify-end items-center">
-            <button type="button" className="px-5 py-2 rounded bg-slate-900 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg shadow-slate-900/10 active:scale-95">
+            <button
+              type="button"
+              onClick={() => onNavigate('active-call', lead.id)}
+              className="px-5 py-2 rounded bg-slate-900 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg shadow-slate-900/10 active:scale-95"
+            >
               <Phone size={14} fill="currentColor" /> Initiate Reach
             </button>
           </div>

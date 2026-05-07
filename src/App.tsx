@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Mic2, 
-  BarChart3, 
-  LogOut, 
-  Mic
+import {
+  LayoutDashboard,
+  Users,
+  Mic2,
+  BarChart3,
+  LogOut,
+  Mic,
+  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type Session } from '@supabase/supabase-js';
@@ -20,6 +21,15 @@ import AnalyticsView from './components/Analytics';
 import LandingPage from './components/LandingPage';
 import { requireSupabase, supabase } from './utils/supabase';
 import { setAccessTokenProvider } from './api/client';
+
+const viewTitles: Record<View, { title: string; subtitle: string }> = {
+  dashboard: { title: 'Institutional overview', subtitle: 'Performance across voice qualification sessions' },
+  pipeline: { title: 'Lead pipeline', subtitle: 'Prospects, scores, and intent in one place' },
+  'active-call': { title: 'Voice monitor', subtitle: 'Live Saathi session — STT, AI reply, and scoring' },
+  'rm-view': { title: 'RM queue', subtitle: 'High-intent leads ready for relationship outreach' },
+  'lead-detail': { title: 'Lead profile', subtitle: 'Transcript, summary, and recommended opener' },
+  analytics: { title: 'Analytics', subtitle: 'Funnel, objections, and language signals' },
+};
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('pipeline');
@@ -69,7 +79,7 @@ export default function App() {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'pipeline', label: 'Leads', icon: Users },
-    { id: 'rm-view', label: 'RM View', icon: Mic2 },
+    { id: 'rm-view', label: 'RM view', icon: Mic2 },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
@@ -109,8 +119,9 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-brand-background text-slate-200 text-sm font-medium">
-        Loading secure workspace...
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-50 text-slate-600 gap-3">
+        <div className="h-10 w-10 rounded-xl border-2 border-blue-600 border-t-transparent animate-spin" />
+        <p className="text-sm font-medium tracking-tight">Loading secure workspace…</p>
       </div>
     );
   }
@@ -129,117 +140,152 @@ export default function App() {
     );
   }
 
+  const headerMeta = viewTitles[currentView];
+
   return (
-    <div className="flex h-screen bg-brand-background overflow-hidden font-sans">
-      <nav className="w-60 bg-brand-dark flex flex-col h-full border-r border-slate-800 z-50">
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 bg-brand-primary-light rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
-            S
+    <div className="flex h-screen bg-slate-100 overflow-hidden font-sans">
+      <aside className="w-64 shrink-0 flex flex-col h-full bg-white border-r border-slate-200/90 z-50 shadow-[4px_0_24px_-12px_rgba(15,23,42,0.08)]">
+        <div className="p-5 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-blue-900/25 ring-1 ring-white/20">
+              S
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-slate-900 text-[15px] tracking-tight leading-none">Saathi</p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1 leading-tight">Partner intelligence</p>
+            </div>
           </div>
-          <span className="text-white font-bold tracking-tight text-lg">SAATHI</span>
         </div>
 
-        <div className="flex-1 px-4 space-y-1 mt-4">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleNavigate(item.id as View)}
-              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-md transition-all duration-200 text-sm font-medium ${
-                currentView === item.id 
-                ? 'bg-brand-primary text-white shadow-md' 
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-              }`}
-            >
-              <item.icon size={18} />
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </div>
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
+          <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+            Workspace
+          </p>
+          {navItems.map((item) => {
+            const active = currentView === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleNavigate(item.id as View)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-200 ${
+                  active
+                    ? 'bg-blue-50 text-blue-900 shadow-sm ring-1 ring-blue-100/80'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <item.icon
+                  size={18}
+                  className={active ? 'text-blue-600' : 'text-slate-400'}
+                  strokeWidth={active ? 2.25 : 2}
+                />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
-        <div className="p-4 mt-auto border-t border-slate-800">
-          <button 
+        <div className="p-3 border-t border-slate-100 space-y-3">
+          <button
+            type="button"
             onClick={() => handleNavigate('active-call')}
-            className="w-full bg-indigo-500 text-white py-2 px-4 rounded-md font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 hover:bg-indigo-400 transition-all shadow-sm mb-4"
+            className="w-full rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 font-bold text-xs uppercase tracking-[0.12em] flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 hover:from-blue-500 hover:to-indigo-500 transition-all ring-1 ring-blue-500/20"
           >
-            <Mic size={14} />
-            <span>Voice Monitor</span>
+            <Mic size={16} strokeWidth={2.25} />
+            Voice monitor
           </button>
-          
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
+
+          <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-white border border-slate-200 overflow-hidden shrink-0 shadow-sm">
               {!avatarFailed ? (
                 <img
-                  src="https://ui-avatars.com/api/?name=Marcus+Thorne&background=334155&color=ffffff"
-                  alt="User avatar"
+                  src="https://ui-avatars.com/api/?name=RM+User&background=e2e8f0&color=475569"
+                  alt=""
                   className="w-full h-full object-cover"
                   onError={() => setAvatarFailed(true)}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[10px] font-semibold text-white bg-slate-600">
-                  MT
+                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-600">
+                  RM
                 </div>
               )}
             </div>
-            <div className="flex flex-col">
-              <span className="text-xs text-white font-medium">
-                {session.user.email ?? 'RM User'}
-              </span>
-              <span className="text-[10px] text-slate-500">Relationship Manager</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-slate-800 truncate">
+                {session.user.email ?? 'Relationship manager'}
+              </p>
+              <p className="text-[10px] text-slate-500 font-medium">Signed in</p>
             </div>
             <button
               type="button"
               onClick={() => void handleSignOut()}
-              className="ml-auto text-slate-400 hover:text-white transition-colors"
+              className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-white border border-transparent hover:border-slate-200 transition-colors"
               title="Sign out"
             >
-              <LogOut size={14} />
+              <LogOut size={16} />
             </button>
           </div>
         </div>
-      </nav>
+      </aside>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 w-full z-40">
-          <div className="flex items-center gap-4">
-            <h1 className="text-lg font-bold text-slate-800">SAATHI Intelligence</h1>
-            <span className="px-2 py-0.5 bg-brand-success/10 text-brand-success text-[10px] font-bold uppercase tracking-wider rounded border border-brand-success/20">
-              Agent Online
-            </span>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Today&apos;s Pipeline</span>
-              <span className="text-sm font-bold text-slate-900 tracking-tight">Rupeezy AP</span>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header className="shrink-0 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-6 py-4 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 max-w-[1600px] mx-auto w-full">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight capitalize">
+                  {headerMeta.title}
+                </h1>
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 border border-emerald-200/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live
+                </span>
+              </div>
+              <p className="text-sm text-slate-500 font-medium max-w-xl leading-snug">
+                {headerMeta.subtitle}
+              </p>
             </div>
-            <button 
-              type="button"
-              onClick={() => handleNavigate('active-call')}
-              className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded shadow-sm hover:bg-slate-800 transition-colors uppercase tracking-widest"
-            >
-              Execute Call
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2">
+                <Sparkles size={14} className="text-blue-600" />
+                <div className="text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Program</p>
+                  <p className="text-xs font-bold text-slate-800">Rupeezy AP</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleNavigate('active-call')}
+                className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold tracking-wide shadow-md shadow-slate-900/15 hover:bg-slate-800 transition-colors"
+              >
+                Execute call
+              </button>
+            </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto custom-scrollbar flex flex-col p-6 space-y-6">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentView}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="flex-1 flex flex-col"
-            >
-              {currentView === 'dashboard' && <DashboardView onNavigate={handleNavigate} />}
-              {currentView === 'pipeline' && <PipelineView onNavigate={handleNavigate} />}
-              {currentView === 'active-call' && <ActiveCallView preferredLeadId={selectedLeadId} />}
-              {currentView === 'rm-view' && <RMView />}
-              {currentView === 'lead-detail' && <LeadDetailView leadId={selectedLeadId} />}
-              {currentView === 'analytics' && <AnalyticsView />}
-            </motion.div>
-          </AnimatePresence>
+        <main className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="max-w-[1600px] mx-auto w-full p-6 lg:p-8 min-h-full">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentView}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18 }}
+                className="flex-1 flex flex-col"
+              >
+                {currentView === 'dashboard' && <DashboardView onNavigate={handleNavigate} />}
+                {currentView === 'pipeline' && <PipelineView onNavigate={handleNavigate} />}
+                {currentView === 'active-call' && <ActiveCallView preferredLeadId={selectedLeadId} />}
+                {currentView === 'rm-view' && <RMView onNavigate={handleNavigate} />}
+                {currentView === 'lead-detail' && (
+                  <LeadDetailView leadId={selectedLeadId} onNavigate={handleNavigate} />
+                )}
+                {currentView === 'analytics' && <AnalyticsView />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </main>
       </div>
     </div>

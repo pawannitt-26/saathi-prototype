@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { 
   TrendingUp, 
   PhoneCall, 
   Flame, 
   Timer,
   Mail,
-  PhoneMissed
+  PhoneMissed,
+  RefreshCw,
 } from 'lucide-react';
 import { View } from '../types';
 import { fetchActivities, fetchDashboardMetrics, type ActivityDto, type DashboardMetricsDto } from '../api/client';
@@ -28,19 +29,50 @@ const colorFor = (e: ActivityDto) => {
   return 'bg-slate-400';
 };
 
+const REFRESH_INTERVAL_MS = 30_000;
+
 export default function DashboardView({ onNavigate }: DashboardProps) {
   const [metrics, setMetrics] = useState<DashboardMetricsDto | null>(null);
   const [activities, setActivities] = useState<ActivityDto[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [secondsAgo, setSecondsAgo] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    Promise.all([fetchDashboardMetrics(), fetchActivities()])
-      .then(([m, a]) => {
-        setMetrics(m);
-        setActivities(a);
-      })
-      .catch((e) => setError(String(e)));
+  const load = useCallback(async (showSpinner = false) => {
+    if (showSpinner) setRefreshing(true);
+    try {
+      const [m, a] = await Promise.all([fetchDashboardMetrics(), fetchActivities()]);
+      setMetrics(m);
+      setActivities(a);
+      setLastUpdated(new Date());
+      setSecondsAgo(0);
+      setError(null);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      if (showSpinner) setRefreshing(false);
+    }
   }, []);
+
+  // Initial load + auto-refresh every 30 s
+  useEffect(() => {
+    void load();
+    intervalRef.current = setInterval(() => void load(), REFRESH_INTERVAL_MS);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [load]);
+
+  // Tick "X seconds ago" counter
+  useEffect(() => {
+    if (!lastUpdated) return;
+    const id = setInterval(() => {
+      setSecondsAgo(Math.floor((Date.now() - lastUpdated.getTime()) / 1000));
+    }, 5000);
+    return () => clearInterval(id);
+  }, [lastUpdated]);
 
   const funnel = metrics?.funnel ?? [];
   const sentiment = metrics?.sentiment ?? { HOT: '0%', WARM: '0%', COLD: '0%' };
@@ -52,9 +84,22 @@ export default function DashboardView({ onNavigate }: DashboardProps) {
           <h2 className="text-xl font-bold text-slate-800 tracking-tight">Institutional Overview</h2>
           <p className="text-xs text-slate-400 font-medium">Performance summary across SAATHI voice sessions.</p>
         </div>
-        <div className="text-[10px] font-bold text-slate-500 flex items-center gap-2 uppercase tracking-widest bg-white px-3 py-1.5 rounded border border-slate-200">
-          <Timer size={14} />
-          Session Active
+        <div className="flex items-center gap-2">
+          {lastUpdated && (
+            <span className="text-[10px] font-medium text-slate-400">
+              {secondsAgo < 10 ? 'just now' : `${secondsAgo}s ago`}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => void load(true)}
+            disabled={refreshing}
+            title="Refresh metrics"
+            className="text-[10px] font-bold text-slate-500 flex items-center gap-2 uppercase tracking-widest bg-white px-3 py-1.5 rounded border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
         </div>
       </div>
 
@@ -65,13 +110,18 @@ export default function DashboardView({ onNavigate }: DashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Conversion Rate (proxy)', value: metrics?.conversion_rate ?? '—', change: '', trend: 'up', icon: TrendingUp, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-          { label: 'Active Calls', value: String(metrics?.active_calls ?? 0), subValue: 'live sessions', icon: PhoneCall, color: 'text-white bg-slate-900 border-slate-900', active: true },
+          { label: 'Active Calls', value: String(metrics?.active_calls ?? 0), subValue: lastUpdated ? (secondsAgo < 10 ? 'live · just now' : `live · ${secondsAgo}s ago`) : 'live sessions', icon: PhoneCall, color: 'text-white bg-slate-900 border-slate-900', active: true },
           { label: 'Hot Leads', value: String(metrics?.hot_leads_today ?? 0), subValue: 'current snapshot', icon: Flame, color: 'text-amber-600 bg-amber-50 border-amber-100' },
           { label: 'Sentiment HOT', value: sentiment.HOT ?? '0%', subValue: 'of base', icon: Timer, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
         ].map((metric, i) => (
-          <div key={i} className={`bg-white border border-slate-200 shadow-sm rounded-lg p-4 flex flex-col justify-between h-[110px]`}>
+          <div key={i} className="bg-white border border-slate-200 shadow-sm rounded-lg p-4 flex flex-col justify-between h-[110px]">
             <div className="flex items-start justify-between">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{metric.label}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                {'active' in metric && metric.active && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                )}
+                {metric.label}
+              </span>
               <div className={`w-8 h-8 rounded flex items-center justify-center relative overflow-hidden border ${metric.color}`}>
                 <metric.icon size={16} />
               </div>

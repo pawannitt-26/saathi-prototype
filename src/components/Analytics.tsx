@@ -9,6 +9,15 @@ import {
 import { motion } from 'motion/react';
 import { fetchAnalytics, type AnalyticsDto } from '../api/client';
 
+/** Tapered width from API, but never so narrow that labels stack letter-by-letter */
+function funnelDisplayWidth(width: unknown, isFirstStep: boolean): string {
+  if (isFirstStep) return '100%';
+  if (typeof width !== 'string' || !width.endsWith('%')) return '100%';
+  const n = Number.parseInt(width.replace('%', '').trim(), 10);
+  if (Number.isNaN(n)) return '100%';
+  return `${Math.max(22, Math.min(100, n))}%`;
+}
+
 export default function AnalyticsView() {
   const [data, setData] = useState<AnalyticsDto | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -52,34 +61,49 @@ export default function AnalyticsView() {
             <span className="text-[9px] font-bold bg-slate-50 text-slate-500 px-2.5 py-1 rounded border border-slate-200 uppercase">Live</span>
           </div>
           
-          <div className="flex-1 flex flex-col justify-between py-2 space-y-3">
-            {funnelSteps.map((step, idx) => (
+          <div className="flex-1 flex flex-col justify-between py-2 space-y-2">
+            {funnelSteps.map((step, idx) => {
+              const isFirst = idx === 0;
+              const barWidth = funnelDisplayWidth(step.width, isFirst);
+              return (
               <React.Fragment key={String(step.id ?? idx)}>
-                <div className={`relative mx-auto h-12 rounded-sm transition-all duration-500 flex items-center px-6 justify-between group cursor-help border ${
-                  step.solid ? 'bg-slate-900 text-white border-slate-900 shadow-xl' : 'bg-indigo-50/20 border-indigo-100/50 hover:bg-indigo-50/40'
-                }`} style={{ width: typeof step.width === 'string' ? step.width : '100%' }}>
-                  <div className="flex items-center gap-4 w-1/3">
-                    <span className={`font-mono text-[11px] font-bold ${step.solid ? 'text-indigo-400' : 'text-indigo-600'}`}>{step.id}</span>
-                    <span className="text-[11px] font-bold uppercase tracking-tight truncate">{String(step.label)}</span>
-                  </div>
-                  <div className="w-1/3 text-center">
-                    <span className="font-mono text-sm font-bold tracking-tighter">{String(step.value)}</span>
-                  </div>
-                  <div className="w-1/3 text-right">
-                    <span className="text-[10px] font-bold opacity-60 uppercase">{String(step.percentage ?? '')}</span>
-                  </div>
+                <div
+                  className={`relative mx-auto min-h-12 rounded-lg transition-all duration-500 grid grid-cols-[auto_minmax(0,1fr)_auto_auto] gap-x-3 items-center px-4 sm:px-6 py-3 group cursor-help border ${
+                  step.solid ? 'bg-slate-900 text-white border-slate-800 shadow-lg' : 'bg-indigo-50/30 border-indigo-100/70 hover:bg-indigo-50/50'
+                }`}
+                  style={{
+                    width: barWidth,
+                    maxWidth: '100%',
+                    minWidth: 'min(100%, 15.5rem)',
+                  }}
+                >
+                  <span className={`font-mono text-[11px] font-bold tabular-nums ${step.solid ? 'text-sky-400' : 'text-indigo-600'}`}>
+                    {String(step.id)}
+                  </span>
+                  <span
+                    className={`text-[11px] font-bold uppercase tracking-tight leading-normal min-w-0 ${step.solid ? 'text-white' : 'text-slate-800'}`}
+                  >
+                    {String(step.label)}
+                  </span>
+                  <span className={`font-mono text-sm font-bold tracking-tight tabular-nums text-right ${step.solid ? 'text-white' : 'text-slate-900'}`}>
+                    {String(step.value)}
+                  </span>
+                  <span className={`text-[10px] font-bold tabular-nums uppercase tracking-wide text-right ${step.solid ? 'text-slate-300' : 'text-slate-500'}`}>
+                    {String(step.percentage ?? '')}
+                  </span>
                 </div>
 
                 {step.dropoff && (
-                  <div className="flex justify-end relative z-10 -my-2.5" style={{ width: typeof step.width === 'string' ? step.width : '100%' }}>
-                    <div className="bg-rose-50 text-rose-600 text-[9px] font-bold px-2 py-0.5 rounded shadow-sm border border-rose-100 flex items-center gap-1 transform translate-x-8 uppercase tracking-tighter">
-                      <TrendingDown size={12} />
-                      {String(step.dropoff)} Attrition
+                  <div className="flex justify-end w-full max-w-full px-2 -my-1">
+                    <div className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 text-rose-700 text-[9px] font-bold px-2.5 py-1 border border-rose-100 shadow-sm uppercase tracking-wide">
+                      <TrendingDown size={12} className="shrink-0" aria-hidden />
+                      {String(step.dropoff)} attrition
                     </div>
                   </div>
                 )}
               </React.Fragment>
-            ))}
+            );
+            })}
           </div>
         </div>
 

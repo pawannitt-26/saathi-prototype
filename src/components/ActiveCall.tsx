@@ -289,7 +289,7 @@ export default function ActiveCallView({
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [duration, setDuration] = useState(0);
   const [input, setInput] = useState('');
-  const [status, setStatus] = useState<'idle' | 'live' | 'ended'>('idle');
+  const [status, setStatus] = useState<'idle' | 'live' | 'ending' | 'ended'>('idle');
   const [micRecording, setMicRecording] = useState(false);
   const [keyboardFallbackOpen, setKeyboardFallbackOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -476,8 +476,6 @@ export default function ActiveCallView({
       }
       if (t === 'call_end') {
         cancelVoiceFallbackTimers();
-        micSessionRef.current += 1;
-        stopMicTracks();
         setStatus('ended');
         setScore(Number(data.score ?? 0));
         ws.close();
@@ -561,8 +559,11 @@ export default function ActiveCallView({
   };
 
   const endCall = () => {
+    if (status !== 'live') return;
     micSessionRef.current += 1;
+    cancelVoiceFallbackTimers();
     stopMicTracks();
+    setStatus('ending');
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: 'end_call' }));
     }
@@ -597,7 +598,7 @@ export default function ActiveCallView({
               className="text-sm font-bold text-slate-900 border border-slate-200 rounded px-2 py-1 bg-white"
               value={leadId}
               onChange={(e) => setLeadId(e.target.value)}
-              disabled={status === 'live'}
+              disabled={status === 'live' || status === 'ending'}
             >
               {leads.map((l) => (
                 <option key={l.id} value={l.id}>
@@ -609,7 +610,7 @@ export default function ActiveCallView({
           <button
             type="button"
             onClick={() => void connect()}
-            disabled={!leadId || status === 'live'}
+            disabled={!leadId || status === 'live' || status === 'ending'}
             className="text-[10px] font-bold uppercase tracking-widest bg-indigo-600 text-white px-3 py-2 rounded disabled:opacity-40"
           >
             Start session
@@ -640,11 +641,20 @@ export default function ActiveCallView({
             type="button"
             onClick={endCall}
             disabled={status !== 'live'}
-            title={status !== 'live' ? 'Start a session first' : 'End call and save score'}
+            title={status === 'idle' || status === 'ended' ? 'Start a session first' : status === 'ending' ? 'Finalizing call…' : 'End call and save score'}
             className="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded text-[10px] font-bold flex items-center gap-2 transition-all shadow-lg shadow-rose-500/10 uppercase tracking-widest disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none disabled:hover:bg-rose-600"
           >
-            <PhoneOff size={14} fill="currentColor" />
-            <span>End &amp; score</span>
+            {status === 'ending' ? (
+              <>
+                <Loader2 size={14} className="animate-spin" aria-hidden />
+                <span>Ending…</span>
+              </>
+            ) : (
+              <>
+                <PhoneOff size={14} fill="currentColor" />
+                <span>End &amp; score</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -688,7 +698,7 @@ export default function ActiveCallView({
               </p>
             </div>
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
-              {status === 'live' ? 'WS live' : status}
+              {status === 'live' ? 'WS live' : status === 'ending' ? 'finalizing…' : status}
             </span>
           </div>
 
@@ -732,7 +742,7 @@ export default function ActiveCallView({
                       <motion.div
                         aria-busy="true"
                         aria-live="polite"
-                        className="bg-gradient-to-br from-white to-indigo-50/50 border border-indigo-200/70 rounded-lg rounded-tl-none shadow-sm px-4 py-3 flex items-start gap-3 min-h-[76px]"
+                        className="bg-linear-to-br from-white to-indigo-50/50 border border-indigo-200/70 rounded-lg rounded-tl-none shadow-sm px-4 py-3 flex items-start gap-3 min-h-[76px]"
                         animate={{ opacity: [0.88, 1, 0.88] }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                       >
@@ -791,10 +801,16 @@ export default function ActiveCallView({
             )}
           </div>
 
-          <div className="p-4 border-t border-slate-100 bg-gradient-to-b from-slate-50/80 to-white space-y-4">
-            {status !== 'live' && (
+          <div className="p-4 border-t border-slate-100 bg-linear-to-b from-slate-50/80 to-white space-y-4">
+            {status === 'idle' || status === 'ended' ? (
               <p className="text-[11px] text-slate-500 text-center font-medium py-1">
                 Start a session above — then you will speak with the microphone (audio → transcription).
+              </p>
+            ) : null}
+            {status === 'ending' && (
+              <p className="text-[11px] text-indigo-600 text-center font-bold py-1 flex items-center justify-center gap-2">
+                <Loader2 size={13} className="animate-spin" aria-hidden />
+                Scoring and saving call — please wait…
               </p>
             )}
             {status === 'live' && micSupported && (
@@ -835,6 +851,7 @@ export default function ActiveCallView({
                 This browser does not expose a microphone API. Use typing below.
               </p>
             )}
+
 
             <div className="flex flex-col items-center gap-2 pt-1">
               <button

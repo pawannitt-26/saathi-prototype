@@ -8,8 +8,13 @@ import {
   Briefcase
 } from 'lucide-react';
 import { fetchRmHot, type HotLeadRmDto } from '../api/client';
+import { View } from '../types';
 
-export default function RMView() {
+interface RMViewProps {
+  onNavigate: (view: View, leadId?: string) => void;
+}
+
+export default function RMView({ onNavigate }: RMViewProps) {
   const [hotLeads, setHotLeads] = useState<HotLeadRmDto[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,7 +72,7 @@ export default function RMView() {
                   </tr>
                 ) : (
                   hotLeads.map((lead, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition-colors group cursor-pointer">
+                    <tr key={i} onClick={() => onNavigate('lead-detail', lead.lead_id)} className="hover:bg-slate-50 transition-colors group cursor-pointer">
                       <td className="px-6 py-3">
                         <div className="font-bold text-slate-800">{lead.name}</div>
                         <div className="text-[10px] text-slate-400 mt-0.5 font-bold uppercase tracking-widest leading-none">{lead.time}</div>
@@ -83,10 +88,20 @@ export default function RMView() {
                       </td>
                       <td className="px-6 py-3 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                          <button type="button" className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded transition-all">
+                          <button
+                            type="button"
+                            title="View AI transcript & lead detail"
+                            onClick={(e) => { e.stopPropagation(); onNavigate('lead-detail', lead.lead_id); }}
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded transition-all"
+                          >
                             <MessageSquare size={14} />
                           </button>
-                          <button type="button" className="flex items-center gap-1.5 bg-slate-900 text-white px-3 py-1 rounded text-[10px] font-bold shadow-sm hover:bg-slate-800 transition-all uppercase tracking-wider">
+                          <button
+                            type="button"
+                            title="Start follow-up call in Voice Monitor"
+                            onClick={(e) => { e.stopPropagation(); onNavigate('active-call', lead.lead_id); }}
+                            className="flex items-center gap-1.5 bg-slate-900 text-white px-3 py-1 rounded text-[10px] font-bold shadow-sm hover:bg-slate-800 transition-all uppercase tracking-wider"
+                          >
                             <Phone size={12} fill="currentColor" />
                             Connect
                           </button>
@@ -151,7 +166,11 @@ export default function RMView() {
               </div>
               <h4 className="text-sm font-bold text-slate-800 mb-1 tracking-tight">{card.name}</h4>
               <p className="text-[11px] font-medium text-slate-400 mb-4 leading-tight line-clamp-2">{card.source} · {card.value}</p>
-              <button type="button" className="w-full py-1.5 font-bold text-[9px] uppercase tracking-widest text-indigo-600 bg-slate-50 rounded border border-slate-200 hover:bg-indigo-600 hover:text-white transition-all">
+              <button
+                type="button"
+                onClick={() => onNavigate('lead-detail', card.lead_id)}
+                className="w-full py-1.5 font-bold text-[9px] uppercase tracking-widest text-indigo-600 bg-slate-50 rounded border border-slate-200 hover:bg-indigo-600 hover:text-white transition-all"
+              >
                 Review Exposure
               </button>
             </div>
