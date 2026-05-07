@@ -8,10 +8,8 @@ coverage/
 # Env (keep tracked examples)
 .env*
 !.env.example
-!backend/.env.example
 
-# Python
-backend/.venv/
+# Python (if you add scripts in-repo)
 .venv/
 venv/
 __pycache__/

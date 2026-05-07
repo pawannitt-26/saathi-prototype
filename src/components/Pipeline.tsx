@@ -56,7 +56,7 @@ export default function PipelineView({ onNavigate }: PipelineProps) {
 
       {error && (
         <div className="text-rose-600 text-xs font-bold bg-rose-50 border border-rose-200 rounded p-2">
-          API: {error} — start backend (docker compose up) or set VITE_API_URL
+          API: {error} — run the Saathi API (saathi-prototype-backend) and set VITE_API_URL
         </div>
       )}
 

@@ -1,65 +1,34 @@
-# SAATHI — AI voice agent prototype
+# SAATHI — AI voice agent prototype (frontend)
 
-Full-stack demo: **React + Vite** dashboard, **FastAPI** backend, **Supabase Postgres + Redis**, voice session over **WebSocket** (`STT → Claude → TTS` with **Sarvam / Deepgram / ElevenLabs** when keys are set).
+React + Vite dashboard for **Saathi**: leads, RM views, analytics, and **Voice Monitor** (WebSocket to the API).
 
-Postgres is **not** bundled: use **Supabase** (or any Postgres you manage separately). This repo ships **Redis** in Docker Compose for the Docker workflow; hybrid dev uses **Redis on your machine** (or point `REDIS_URL` at any Redis).
+The **FastAPI backend** is a **separate repository**: **[saathi-prototype-backend](https://github.com/pawannitt-26/saathi-prototype-backend)** — deploy or run that service and point this app at it.
 
-## Quick start (Docker — API + Redis)
+## Quick start
 
-1. Copy [backend/.env.example](backend/.env.example) to `backend/.env` and set **`DATABASE_URL`** to your Supabase connection string (see **Supabase** below).
-2. `docker compose up --build`
-3. API: `http://localhost:8000/health`
-4. Frontend: copy [.env.example](.env.example) to `.env` or `.env.local`, set `VITE_API_URL=http://localhost:8000`, then `npm install && npm run dev`
-5. Create an RM user in Supabase Auth (**Authentication → Users**) and sign in from the app.
+1. **API** — Clone [saathi-prototype-backend](https://github.com/pawannitt-26/saathi-prototype-backend), add `.env` from its `.env.example`, then either:
+   - `docker compose up --build`, or  
+   - local: `uvicorn` (see that repo’s README).
+2. **Frontend** — Copy [.env.example](.env.example) to `.env` or `.env.local` and set:
+   - `VITE_API_URL` — base URL of the API (e.g. `http://localhost:8000` or your hosted URL)
+   - `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for sign-in
+3. `npm install && npm run dev`
+4. Create an RM user in Supabase Auth (**Authentication → Users**) and sign in.
 
-Compose overrides **`REDIS_URL`** inside the API container to `redis://redis:6379/0`; your `backend/.env` can still use `localhost` for hybrid runs and that value is ignored in Docker for Redis only.
+## Voice session
 
-## Local API + local Redis (no Docker for the app)
+Open **Voice Monitor**, pick a lead, **Start session**. The server streams AI tokens and optional TTS when Sarvam is configured on the API. **End & score** persists transcript and RM handoff data.
 
-1. Run **Redis** on localhost (for example Homebrew, or `docker compose up -d redis` and use `REDIS_URL=redis://localhost:6379/0` in `backend/.env`).
-2. `cd backend && python3 -m venv .venv && source .venv/bin/activate`
-3. `pip install -r requirements.txt`
-4. `backend/.env` with **`DATABASE_URL`** = Supabase (same as Docker path).
-   - Set `SUPABASE_URL=https://<project-ref>.supabase.co`
-   - Keep `SUPABASE_JWT_AUDIENCE=authenticated` unless your JWT audience is custom
-   - Set `WEBHOOK_SECRET` for `/api/webhooks/*` requests
-5. From `backend/`: `alembic upgrade head && python -m app.seed`
-6. `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
+Vendor keys stay on the **API** only; this SPA uses `VITE_API_URL` — no LLM/STT secrets in the browser.
 
-Set `MOCK_AI=false` and provider keys when you are ready for live models.
+## Authentication
 
-## Tests
+- Sign-in: Supabase email/password (`src/utils/supabase.ts`).
+- API calls send `Authorization: Bearer` from the Supabase session (`src/api/client.ts`).
+- WebSocket `/ws/call` sends `access_token` in the query string.
 
-```bash
-cd backend && PYTHONPATH=. .venv/bin/pytest tests/ -q
-```
+## Supabase
 
-## Voice session (browser)
+Use the **same** Supabase project for the browser client **and** for the API’s `DATABASE_URL` / JWT verification so RMs, leads, and calls stay consistent. Configure **RLS** for any tables the anon key should access from the SPA.
 
-Open **Voice Monitor**, choose a lead, **Start session**, then type user lines. The server streams AI tokens and returns optional TTS (`audio/mpeg`) when ElevenLabs/Sarvam are configured. End with **End & score** to persist transcript, RM brief, and triggers (WhatsApp stub for **WARM**).
-
-Vendor API keys stay on the server only. The SPA uses `VITE_API_URL` — no LLM/STT keys in the browser.
-
-## Authentication (Supabase Auth)
-
-- Frontend sign-in uses Supabase email/password.
-- REST routes under `/api/leads`, `/api/dashboard`, `/api/analytics` require `Authorization: Bearer <access_token>`.
-- WebSocket `/ws/call` requires `access_token` in the connection query string.
-- `/health` stays public.
-- `/api/webhooks/whatsapp/link-opened` is protected by `X-Webhook-Secret` (matches backend `WEBHOOK_SECRET`).
-
-## Supabase (hosted Postgres + browser client)
-
-1. **Frontend** — Add to `.env` or `.env.local` (see [.env.example](.env.example)):
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`  
-   Import the client from [`src/utils/supabase.ts`](src/utils/supabase.ts). The exported `supabase` is `null` until both vars are set. Use `requireSupabase()` when you need a non-null client. For `from('some_table').select()` to work, create the table in Supabase and configure **RLS** for the anon key.
-
-2. **Backend (source of truth for leads / calls)** — Point FastAPI at the same database:
-   - In Supabase: **Project Settings → Database** or **Connect**, **URI** tab.
-   - If your network is **IPv4-only** and Supabase says Direct is **not IPv4 compatible**, select **Session pooler** (not Transaction pooler), then copy the URI. It usually uses a **pooler** hostname and port **5432**. Add **`?sslmode=require`** if missing.
-   - If you have **IPv6** (or Supabase IPv4 add-on), **Direct connection** to `db.<project-ref>.supabase.co:5432` is fine.
-   - Avoid **Transaction pooler** for `alembic upgrade` when possible (session features / migrations).
-   - Set `DATABASE_URL` in `backend/.env` (use the **database password**, not the publishable/anon key). URL-encode characters like `@` and `#` in the password.
-   - From `backend/`: `alembic upgrade head && python -m app.seed`
-   - **Redis**: local install, or the `redis` service from this repo’s Compose, or any hosted Redis URL in `REDIS_URL`.
+For Postgres connection strings (pooler vs direct), see the **backend** repo README.

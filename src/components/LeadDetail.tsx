@@ -21,9 +21,22 @@ export default function LeadDetailView({ leadId }: { leadId: string | null }) {
   useEffect(() => {
     if (!leadId) {
       setData(null);
+      setError(null);
       return;
     }
-    fetchLeadDetail(leadId).then(setData).catch((e) => setError(String(e)));
+    setError(null);
+    setData(null);
+    let cancelled = false;
+    fetchLeadDetail(leadId)
+      .then((res) => {
+        if (!cancelled) setData(res);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(String(e));
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [leadId]);
 
   if (!leadId) {

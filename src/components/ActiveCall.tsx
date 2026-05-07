@@ -94,7 +94,12 @@ export default function ActiveCallView({
     };
 
     ws.onmessage = (ev) => {
-      const data = JSON.parse(ev.data as string) as Record<string, unknown>;
+      let data: Record<string, unknown>;
+      try {
+        data = JSON.parse(String(ev.data)) as Record<string, unknown>;
+      } catch {
+        return;
+      }
       const t = data.type as string;
       if (t === 'transcript') {
         const sp = data.speaker === 'ai' ? 'ai' : 'user';
